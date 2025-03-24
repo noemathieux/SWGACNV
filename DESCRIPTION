@@ -1,0 +1,24 @@
+Package: SWGACNV
+Title: Identification of copy number variation in SWGA sequencing
+Version: 1.0.0
+Authors@R: 
+    person("Noe", "MATHIEUX", , "noe.mathieuxx@gmail.com", role = c("aut", "cre"))
+    person("Romain", "Coppee", , "romain.coppee@univ-rouen.fr", role = c("aut", "cre"))
+Description: This package provide functions to identify CNV in SWGA sequencing.
+License: GPL (>= 3)
+Encoding: UTF-8
+Imports:
+    pracma,
+    tools,
+    dplyr,
+	utils,
+	purrr,
+	ggplot2,
+	ggrepel,
+	Rsamtools,
+	GenomicRanges,
+	txdbmaker,
+	GenomicFeatures,
+	IRanges
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.3.2
