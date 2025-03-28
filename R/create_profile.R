@@ -1,9 +1,9 @@
 
-#' @title Profile creation for the zscoreProfile function.
-#' @description This function allow the user to create his own profile to use in the zscoreProfile function.
+#' @title Profile creation for the cnv_analysis() function.
+#' @description This function allow the user to create his own profile to use in the cnv_analysis function.
 #'
-#' @param profile_csv_folder A folder containing the sample in csv format (seqnames/pos/count) used to create a new profile.
-#' @param output_path (optionnal) Name and path of the output file.
+#' @param profile_csv_folder Path to a folder containing the CSV files. Each file should have 3 columns: `seqnames`, `pos`, and `count`.
+#' @param output_path (optionnal) Path to the folder where the profile files will be saved. Defaults to the working directory if not provided.
 #'
 #' @return A dataframe representing the SWGA profile of the chosen samples.
 #'
@@ -67,7 +67,7 @@ create_profile <- function(profile_csv_folder, output_path = NULL){
       }
     }
 
-    ################## calcule du zscore profile ##################
+    ################## calcule du cnv_analysis profile ##################
 
     # Correcting sample bias.
     GlobalMeans <- colMeans(auc_profile[, 2:ncol(auc_profile)])
@@ -95,4 +95,30 @@ create_profile <- function(profile_csv_folder, output_path = NULL){
     write.csv(auc_profile, output_file, row.names = FALSE)
     cat("Filed saved as :", output_file, "\n")
   }
+
+  # Clean the environment
+  rm(
+    genes_file_path,
+    df_genes,
+    coverage_files,
+    df_coverage_list,
+    i,
+    seqname_value,
+    chr_prefix,
+    df_genes_chr,
+    auc_profile,
+    cov_file,
+    auc_new_col,
+    cov_file_name,
+    df_coverage_temp,
+    y,
+    idx,
+    auc_value,
+    gene_length,
+    GlobalMeans,
+    Correction_Factors,
+    output_file
+  )
+  gc()
+
 }

@@ -2,18 +2,18 @@
 % Please edit documentation in R/create_profile.R
 \name{create_profile}
 \alias{create_profile}
-\title{Profile creation for the zscoreProfile function.}
+\title{Profile creation for the cnv_analysis() function.}
 \usage{
 create_profile(profile_csv_folder, output_path = NULL)
 }
 \arguments{
-\item{profile_csv_folder}{A folder containing the sample in csv format (seqnames/pos/count) used to create a new profile.}
+\item{profile_csv_folder}{Path to a folder containing the CSV files. Each file should have 3 columns: \code{seqnames}, \code{pos}, and \code{count}.}
 
-\item{output_path}{(optionnal) Name and path of the output file.}
+\item{output_path}{(optionnal) Path to the folder where the profile files will be saved. Defaults to the working directory if not provided.}
 }
 \value{
 A dataframe representing the SWGA profile of the chosen samples.
 }
 \description{
-This function allow the user to create his own profile to use in the zscoreProfile function.
+This function allow the user to create his own profile to use in the cnv_analysis function.
 }

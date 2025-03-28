@@ -4,16 +4,18 @@
 \alias{bam_to_csv}
 \title{Converting BMA to csv for CNV identification.}
 \usage{
-bam_to_csv(bam_folder, output_folder = NULL)
+bam_to_csv(bam_folder, gff_path, output_folder = NULL)
 }
 \arguments{
-\item{bam_folder}{Path to the folder containing BAM files.}
+\item{bam_folder}{Path to the folder containing BAM files from SWGA.}
 
-\item{output_folder}{(optionnal) Path of the output folder.}
+\item{gff_path}{The path to the gff file. It can be downloaded on MalariaGen website.}
+
+\item{output_folder}{(optionnal) Path to the output folder. Defaults to the working directory if not provided.}
 }
 \value{
-A csv file for each BAM, usable by the zscoreProfile function.
+A csv file for each BAM, usable by the cnv_analysis function.
 }
 \description{
-This function convert BAM files issued from a Swga sequencing to a specific csv format (chromosome/position/number of reads), rendering it usable by the zscoreProfile function for CNV identification.
+This function convert BAM files issued from a Swga sequencing to a specific csv format (chromosome/position/number of reads), rendering it usable by the cnv_analysis function for CNV identification.
 }
