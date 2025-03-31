@@ -11,7 +11,7 @@ bam_to_csv(bam_folder, gff_path, output_folder = NULL)
 
 \item{gff_path}{The path to the gff file. It can be downloaded on MalariaGen website.}
 
-\item{output_folder}{(optionnal) Path to the output folder. Defaults to the working directory if not provided.}
+\item{output_folder}{(optional) Path to the output folder. Defaults to the working directory if not provided.}
 }
 \value{
 A csv file for each BAM, usable by the cnv_analysis function.

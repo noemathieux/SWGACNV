@@ -2,25 +2,32 @@
 #' @title Profile creation for the cnv_analysis() function.
 #' @description This function allow the user to create his own profile to use in the cnv_analysis function.
 #'
-#' @param profile_csv_folder Path to a folder containing the CSV files. Each file should have 3 columns: `seqnames`, `pos`, and `count`.
-#' @param output_path (optionnal) Path to the folder where the profile files will be saved. Defaults to the working directory if not provided.
+#' @param profile_csv_folder Path to a folder containing the CSV files. Each file should have 3 columns : `seqnames`, `pos`, and `count`.
+#' @param gene_position (optional)Path to the file containing each gene to analyze with their start and end. It should have 3 column : `gene`, `start`, `end`.
+#' @param chromosomes (optional) Vector of chromosome numbers to analyze (e.g., c(1, 2, 3)). Defaults to 1:14.
+#' @param output_path (optional) Path to the folder where the profile files will be saved. Defaults to the working directory if not provided.
 #'
 #' @return A dataframe representing the SWGA profile of the chosen samples.
 #'
+#' @import dplyr
 #' @importFrom utils install.packages read.csv write.csv
-#' @importFrom dplyr select bind_cols %>%
 #' @importFrom purrr map_dfc
 #' @importFrom pracma trapz
 #' @importFrom tools file_path_sans_ext
 #'
 #' @export
-create_profile <- function(profile_csv_folder, output_path = NULL){
+create_profile <- function(profile_csv_folder, chromosomes = 1:14, gene_position = NULL, output_path = NULL){
 
-  # Load the csv file containing 3 columns : gene name, the positions at which they start and end.
-  genes_file_path <- system.file("extdata", "genes_positions.csv", package = "SWGACNV")
-  df_genes <- read.csv(genes_file_path)
 
-  # Load a list of the csv files path. Thoses files contain 3 columns : the chromosome, the position in the genome and the number of read.
+  if (is.null(gene_position)) {
+    # Load the csv file containing 3 columns : gene name, the positions at which they start and end.
+    genes_file_path <- system.file("extdata", "genes_positions.csv", package = "SWGACNV")
+    df_genes <- read.csv(genes_file_path)
+  }else{
+    df_genes <- read.csv(gene_position) ####### ATESTER #####################################################
+  }
+
+  # Load a list of the csv files path. Those files contain 3 columns : the chromosome, the position in the genome and the number of read.
   coverage_files <- list.files(profile_csv_folder, pattern = "\\.csv$", full.names = TRUE)# select all files ending by .csv
 
 
@@ -34,7 +41,7 @@ create_profile <- function(profile_csv_folder, output_path = NULL){
   }
 
   # Loop for each chromosome
-  for (i in 1:14){
+  for (i in chromosome){
     seqname_value <- paste0("Pf3D7_", sprintf("%02d", i), "_v3")
     chr_prefix <- sub("_v3$", "", seqname_value)
     chr_prefix <- toupper(chr_prefix)

@@ -5,15 +5,15 @@
 #' @param csv_folder Path to the folder containing sample CSV files with columns: `seqnames`, `pos`, and `count`.
 #' @param region Name(s) of the reference region(s) to compare against. Either a string (e.g., `"BENIN"`) or a vector of strings (e.g., `c("BENIN", "TOGO")`).
 #' @param chr ID of the chromosome to analyze (e.g., `"Pf3D7_01_v3"`, or `"Pf3D7_02_v3"`..., or `"Pf3D7_14_v3"`).
-#' @param profile_folder (optionnal) Path to the folder which contains a profile. This is useful if you want analyze your own sample against your own profile.
-#' @param output_folder (optionnal)  Path to the folder where the profile files will be saved. Defaults to the working directory if not provided.
+#' @param profile_folder (optional) Path to the folder which contains a profile. This is useful if you want analyze your own sample against your own profile.
+#' @param output_folder (optional)  Path to the folder where the profile files will be saved. Defaults to the working directory if not provided.
 #'
 #' @return A dataframe and a plot containing the score for each gene of each sample.
 #'
-#' @importFrom ggplot2 ggplot aes geom_point geom_hline scale_color_manual labs theme_minimal theme guides element_text ggsave
+#' @import dplyr
+#' @importFrom ggplot2 ggplot aes geom_point geom_hline scale_color_manual labs theme_minimal theme guides element_text ggsave scale_x_discrete geom_abline
 #' @importFrom ggrepel geom_text_repel
 #' @importFrom utils read.csv write.csv
-#' @importFrom dplyr select bind_cols %>%
 #' @importFrom purrr map_dfc
 #' @importFrom pracma trapz
 #' @importFrom tools file_path_sans_ext
@@ -80,14 +80,6 @@ cnv_analysis <- function(csv_folder, region, chr, profile_folder = NULL, output_
   coverage_files <- list.files(csv_folder, pattern = "\\.csv$", full.names = TRUE)
   auc_results <- data.frame(gene = df_genes$gene)
 
-  # Output path.
-  if (is.null(output_folder)) {
-    output_file <- file.path(getwd(), paste0("samples_CNVresults", chr_number, ".csv"))  # Using working directory by default.
-  } else {
-    output_file <- file.path(output_folder,
-                             paste0("samples_CNVresults", chr_number, ".csv"))  # Using output path.
-  }
-
   # Calculate the AUC for each gene of each sample.
   for (cov_file in coverage_files) {
     auc_new_col <- sub("\\.sorted\\.bam_coverage$",
@@ -98,7 +90,6 @@ cnv_analysis <- function(csv_folder, region, chr, profile_folder = NULL, output_
     cat ("Treating :", cov_file, "\n")
     df_coverage_temp <- read.csv(cov_file)
     df_coverage_temp <- subset(df_coverage_temp, toupper(seqnames) == toupper(chr))
-    write.csv(df_coverage_temp, "D:\\rpaquito\\sample.csv", row.names = FALSE)
     for (i in 1:nrow(df_genes)) {
       print(i)
       idx <- which(
@@ -169,7 +160,30 @@ cnv_analysis <- function(csv_folder, region, chr, profile_folder = NULL, output_
         next  # Sauter l'echantillon s'il manque des colonnes
       }
 
-      # Plot
+      # Output path.
+      if (is.null(output_folder)) {
+        output_file <- file.path(getwd(), paste0("CNVresults_", sample, chr_number, ".csv"))  # Using working directory by default.
+      } else {
+        output_file <- file.path(output_folder, paste0("CNVresults_", sample, chr_number, ".csv"))  # Using output path.
+      }
+
+      # Path to saving the plots
+      if (is.null(output_folder)) {
+        plot_path <- file.path(getwd(), paste0(sample, chr_number, "_", moy_reg, ".jpg"))  # Using working directory by default.
+        plot_path2 <- file.path(getwd(), paste0(sample, " vs ", moy_reg, chr_number, "_", ".jpg"))
+      } else {
+        plot_path <- file.path(output_folder, paste0(sample, chr_number, "_", moy_reg, ".jpg"))  # Using output path.
+        plot_path2 <- file.path(output_folder, paste0(sample, " vs ", moy_reg, chr_number, "_", ".jpg"))
+
+      }
+      if (file.exists(plot_path)) {
+        file.remove(plot_path)  # Delete the file if already existing
+      }
+      if (file.exists(plot_path2)) {
+        file.remove(plot_path2)  # Delete the file if already existing
+      }
+
+      # Plot showing expression level
       p <- ggplot(CNV_results, aes(x = gene, y = .data[[ratio_col]])) +
         geom_point(aes(color = (.data[[zscore_col]] > 2 |
                                   .data[[zscore_col]] < -2)), size = 1.5) +  # Taille des points reduite
@@ -190,32 +204,47 @@ cnv_analysis <- function(csv_folder, region, chr, profile_folder = NULL, output_
           force = 5,
           nudge_y = 0.2
         ) +
-
         scale_color_manual(values = c("FALSE" = "blue", "TRUE" = "red")) +
         labs(
           title = paste("CNV -", sample, "-", moy_reg),
           x = "Genes",
-          y = "Sequencing ratio (sample/profil"
+          y = "Sequencing ratio (sample/profil)"
         ) +
         theme_minimal() +
         theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+        scale_x_discrete(breaks = CNV_results$gene[seq(1, nrow(CNV_results), by = 25)]) +
         guides(color = "none")
 
+      # Plot showing if the sample and the profiles are correlated
+      correlation_value <- cor(
+        CNV_results[[2]],
+        selected_region[[moy_reg]],
+        method = "pearson"
+      )
+
+      # AFFICHER LES OUTLIER SUR CE PLOT AUSSI
+      p2 <- ggplot(CNV_results, aes(x = .data[[colnames(CNV_results)[2]]])) +
+        geom_point(aes(y = selected_region[[moy_reg]]), color = "darkgreen", size = 2) +
+        geom_abline(slope = 1, intercept = 0, linetype = "dashed", color = "red", size = 1) +
+        labs(
+          title = paste(sample, " vs ", moy_reg, "Pearson correlation : ", round(correlation_value, 3)),
+          x = colnames(CNV_results)[2],
+          y = paste("Profil moyen - ", moy_reg)
+        ) +
+        theme_minimal() +
+        theme(axis.text.x = element_text(angle = 45, hjust = 1))
 
       # Saving the plots
-      if (is.null(output_folder)) {
-        plot_path <- file.path(getwd(),
-                               paste0(sample, chr_number, "_", moy_reg, ".jpg"))  # Using working directory by default.
-      } else {
-        plot_path <- file.path(output_folder,
-                               paste0(sample, chr_number, "_", moy_reg, ".jpg"))  # Using output path.
-      }
-      if (file.exists(plot_path)) {
-        file.remove(plot_path)  # Delete the file if already existing
-      }
       ggsave(
         plot_path,
         plot = p,
+        width = 12,
+        height = 6,
+        dpi = 300
+      )
+      ggsave(
+        plot_path2,
+        plot = p2,
         width = 12,
         height = 6,
         dpi = 300

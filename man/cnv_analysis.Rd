@@ -19,9 +19,9 @@ cnv_analysis(
 
 \item{chr}{ID of the chromosome to analyze (e.g., \code{"Pf3D7_01_v3"}, or \code{"Pf3D7_02_v3"}..., or \code{"Pf3D7_14_v3"}).}
 
-\item{profile_folder}{(optionnal) Path to the folder which contains a profile. This is useful if you want analyze your own sample against your own profile.}
+\item{profile_folder}{(optional) Path to the folder which contains a profile. This is useful if you want analyze your own sample against your own profile.}
 
-\item{output_folder}{(optionnal)  Path to the folder where the profile files will be saved. Defaults to the working directory if not provided.}
+\item{output_folder}{(optional)  Path to the folder where the profile files will be saved. Defaults to the working directory if not provided.}
 }
 \value{
 A dataframe and a plot containing the score for each gene of each sample.

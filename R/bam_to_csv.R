@@ -4,15 +4,15 @@
 #'
 #' @param bam_folder Path to the folder containing BAM files from SWGA.
 #' @param gff_path The path to the gff file. It can be downloaded on MalariaGen website.
-#' @param output_folder (optionnal) Path to the output folder. Defaults to the working directory if not provided.
+#' @param output_folder (optional) Path to the output folder. Defaults to the working directory if not provided.
 #'
 #' @return A csv file for each BAM, usable by the cnv_analysis function.
 #'
+#' @import dplyr
 #' @importFrom Rsamtools BamFile ScanBamParam indexBam pileup
 #' @importFrom GenomicFeatures makeTxDbFromGFF genes
 #' @importFrom GenomicRanges seqnames
 #' @importFrom IRanges IRanges IRangesList
-#' @importFrom dplyr select group_by slice ungroup
 #'
 #' @export
 
