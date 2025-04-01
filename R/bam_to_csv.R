@@ -22,8 +22,8 @@ bam_to_csv <- function(bam_folder, gff_path, output_folder = NULL) {
 
 
   # Output path
-  if (is.null(bam_folder)) {
-    bam_folder <- file.path(getwd())  # Using working directory by default
+  if (is.null(output_folder)) {
+    output_folder <- file.path(getwd())  # Using working directory by default
   }
 
 
@@ -89,8 +89,8 @@ bam_to_csv <- function(bam_folder, gff_path, output_folder = NULL) {
       ungroup()
 
 
-    output_coverage <- paste0(output_folder, "\\", basename(bam_file), ".csv")
-    write.csv(pileup_data, output_coverage, row.names = FALSE)
+    output_coverage <- file.path(output_folder, paste0(basename(bam_file), ".csv"))
+    write.csv(pileup_data, output_coverage, row.names = FALSE, quote = TRUE)
     cat("Filed saved at :", output_coverage, "\n")
   }
 
