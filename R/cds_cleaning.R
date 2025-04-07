@@ -1,7 +1,8 @@
+
 #' @title Removing the sample introns.
 #' @description Remove the introns from the sample in CSV format. It should be used after the `bam_to_csv` function for a more accurate analysis.
 #'
-#' @param bam_folder Path to the folder containing samples CSV files converted from BAM.
+#' @param csv_folder Path to the folder containing samples CSV files converted from BAM.
 #' @param gff_path The path to the gff file. It can be downloaded on MalariaGen website.
 #' @param output_folder (optional) Path to the output folder. Defaults to the working directory if not provided.
 #'
@@ -10,18 +11,20 @@
 #' @import dplyr
 #' @import GenomicRanges
 #' @import rtracklayer
+#' @importFrom S4Vectors queryHits
 #'
 #' @export
 
-cds_cleaning <- function(csv_folder, gff_path, output_folder) {
-  # Vérification des dossiers
+cds_cleaning <- function(csv_folder, gff_path, output_folder = NULL) {
+  # Checking if the path are correct
   if (!dir.exists(csv_folder)) stop("csv_folder does not exist.")
   if (!file.exists(gff_path)) stop("GFF file not found.")
-  if (!dir.exists(output_folder)) dir.create(output_folder, recursive = TRUE)
 
   # Output path
   if (is.null(output_folder)) {
     output_folder <- file.path(getwd())  # Using working directory by default
+  }else{
+    if (!dir.exists(output_folder)) dir.create(output_folder, recursive = TRUE)
   }
 
   # Load the gff file
@@ -42,12 +45,12 @@ cds_cleaning <- function(csv_folder, gff_path, output_folder) {
   for (file in csv_files) {
     csv <- tryCatch(read.csv(file), error = function(e) NULL)
     if (is.null(csv)) {
-      warning(paste("Erreur de lecture du fichier :", file))
+      warning(paste("ERROR : reading :", file))
       next
     }
 
     if (!all(c("seqnames", "pos") %in% names(csv))) {
-      warning(paste("Fichier ignoré (colonnes manquantes) :", file))
+      warning(paste("File ignored (columns missing) :", file))
       next
     }
 

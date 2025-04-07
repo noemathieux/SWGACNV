@@ -4,14 +4,21 @@
 \alias{create_profile}
 \title{Profile creation for the cnv_analysis() function.}
 \usage{
-create_profile(profile_csv_folder, gene_position = NULL, output_path = NULL)
+create_profile(
+  profile_csv_folder,
+  chromosomes = 1:14,
+  gene_position = NULL,
+  output_folder = NULL
+)
 }
 \arguments{
 \item{profile_csv_folder}{Path to a folder containing the CSV files. Each file should have 3 columns : \code{seqnames}, \code{pos}, and \code{count}.}
 
+\item{chromosomes}{(optional) Vector of chromosome numbers to analyze (e.g., 1:14 or c(1, 2, 3)). Defaults to 1:14.}
+
 \item{gene_position}{(optional)Path to the file containing each gene to analyze with their start and end. It should have 3 column : \code{gene}, \code{start}, \code{end}.}
 
-\item{output_path}{(optional) Path to the folder where the profile files will be saved. Defaults to the working directory if not provided.}
+\item{output_folder}{(optional) Path to the folder where the profile files will be saved. Defaults to the working directory if not provided.}
 }
 \value{
 A dataframe representing the SWGA profile of the chosen samples.

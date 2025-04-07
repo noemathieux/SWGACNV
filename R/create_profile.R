@@ -3,9 +3,9 @@
 #' @description This function allow the user to create his own profile to use in the cnv_analysis function.
 #'
 #' @param profile_csv_folder Path to a folder containing the CSV files. Each file should have 3 columns : `seqnames`, `pos`, and `count`.
-#' @param chromosomes (optional) Vector of chromosome numbers to analyze (e.g., c(1, 2, 3)). Defaults to 1:14.
+#' @param chromosomes (optional) Vector of chromosome numbers to analyze (e.g., 1:14 or c(1, 2, 3)). Defaults to 1:14.
 #' @param gene_position (optional)Path to the file containing each gene to analyze with their start and end. It should have 3 column : `gene`, `start`, `end`.
-#' @param output_path (optional) Path to the folder where the profile files will be saved. Defaults to the working directory if not provided.
+#' @param output_folder (optional) Path to the folder where the profile files will be saved. Defaults to the working directory if not provided.
 #'
 #' @return A dataframe representing the SWGA profile of the chosen samples.
 #'
@@ -16,14 +16,24 @@
 #' @importFrom tools file_path_sans_ext
 #'
 #' @export
-create_profile <- function(profile_csv_folder, chromosomes = 1:14, gene_position = NULL, output_path = NULL){
+create_profile <- function(profile_csv_folder, chromosomes = 1:14, gene_position = NULL, output_folder = NULL){
+
+  # Checking if the path are correct
+  if (!dir.exists(profile_csv_folder)) stop("profile_csv_folder not found.")
+  # Chromosomes check
+  if (!is.numeric(chromosomes) || any(chromosomes < 1 | chromosomes > 14 | chromosomes != as.integer(chromosomes))) {
+    stop("'chromosomes' must be an integer vector between 1 and 14 (e.g., 1:14 or c(1, 3, 5)).")
+  }
 
 
+
+  # load file with genes start/end
   if (is.null(gene_position)) {
     # Load the csv file containing 3 columns : gene name, the positions at which they start and end.
     genes_file_path <- system.file("extdata", "genes_positions.csv", package = "SWGACNV")
     df_genes <- read.csv(genes_file_path)
   }else{
+    if (!file.exists(gene_position)) stop("gene_position file not found.")
     df_genes <- read.csv(gene_position) ####### ATESTER #####################################################
   }
 
@@ -41,7 +51,7 @@ create_profile <- function(profile_csv_folder, chromosomes = 1:14, gene_position
   }
 
   # Loop for each chromosome
-  for (i in chromosome){
+  for (i in chromosomes){
     seqname_value <- paste0("Pf3D7_", sprintf("%02d", i), "_v3")
     chr_prefix <- sub("_v3$", "", seqname_value)
     chr_prefix <- toupper(chr_prefix)
@@ -94,10 +104,11 @@ create_profile <- function(profile_csv_folder, chromosomes = 1:14, gene_position
 
 
     # Saving the output file
-    if (is.null(output_path)) {
+    if (is.null(output_folder)) {
       output_file <- file.path(getwd(), paste0("profile", sprintf("%02d", i), ".csv"))  # Saving in the wd by default
     } else {
-      output_file <- file.path(output_path, paste0("profile", sprintf("%02d", i), ".csv"))
+      if (!dir.exists(output_folder)) dir.create(output_folder, recursive = TRUE)
+      output_file <- file.path(output_folder, paste0("profile", sprintf("%02d", i), ".csv"))
     }
     write.csv(auc_profile, output_file, row.names = FALSE)
     cat("Filed saved as :", output_file, "\n")

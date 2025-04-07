@@ -34,8 +34,23 @@ A `.csv` file for each BAM input, containing:
 - Position (`pos`)
 - Number of reads (`count`)
 
-These CSV files can be used as input for the `cnv_analysis()` and the `create_profile()` function.
+These CSV files should then be cleaned using the `cds_cleaning()` function.
 
+### `cds_cleaning()`
+
+Cleans coverage CSV files by removing non-coding regions, keeping only coding sequences (CDS) of the genome.
+This function is optional but we strongly recommend using it after the `bam_to_csv` function to eliminate any background noise from non-coding region of the genome.
+
+#### **Parameters:**
+
+- `csv_folder`: Path to the folder containing samples CSV files converted from BAM. Each file must include at least the following columns: `seqnames`, `pos`, and `count`.
+- `gff_path`: Path to the reference GFF file (e.g., from [MalariaGEN](https://www.malariagen.net/data_package/open-dataset-plasmodium-falciparum-v70/) under the section "annotation").
+- `output_folder`: *(optional)* Path to the output folder. Defaults to the working directory if not provided.
+
+#### **Output:**
+
+A `.csv` file per sample, containing the same columns as before but only for the CDS of the genome.
+These CSV files should then be used as input for the `cnv_analysis()` and the `create_profile()` function.
 
 ### `create_profile()`
 
@@ -46,7 +61,7 @@ Generates SWGA profiles from multiple coverage CSV files for CNV analyze with th
 - `profile_csv_folder`: Path to a folder containing the CSV files. Each file should have 3 columns: `seqnames`, `pos`, and `count`.
 - `gene_position` *optional* Path to the file containing each gene to analyze with their start and end. It should have 3 column : `gene`, `start`, `end`.
 - `chromosome` *optional* Vector of chromosome numbers to analyze (e.g., c(1, 2, 3)). Defaults to 1:14.
-- `output_path`: *optional* Path to the folder where the profile files will be saved. Defaults to the working directory if not provided.
+- `output_folder`: *optional* Path to the folder where the profile files will be saved. Defaults to the working directory if not provided.
 
 #### **Output:**
 

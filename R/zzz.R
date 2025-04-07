@@ -1,4 +1,4 @@
-utils::globalVariables(c(".", "Mean_Profile", "which_label", "gene", "seqnames"))
+utils::globalVariables(c(".", "Mean_Profile", "which_label", "gene", "seqnames", "type"))
 
 .onAttach <- function(libname, pkgname) {
   packageStartupMessage("SWGACNV package correctly loaded.")

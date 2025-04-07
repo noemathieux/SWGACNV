@@ -17,18 +17,22 @@
 #' @importFrom purrr map_dfc
 #' @importFrom pracma trapz
 #' @importFrom tools file_path_sans_ext
+#' @importFrom stats cor
 #'
 #' @export
 
 cnv_analysis <- function(csv_folder, region, chr, profile_folder = NULL, output_folder = NULL) {
-
+  ## test commit
+  # Checking if files and folder exists
+  if (!dir.exists(csv_folder)) stop("csv_folder not found.")
+  if (!is.null(profile_folder)) {
+    if (!dir.exists(profile_folder)) stop("profile_folder not found.")
+  }
   chr <- toupper(chr)
   # Load the csv containing the score of each region.
   chr_number <- sub("PF3D7_", "", chr)
   chr_number <- sub("_V3", "", chr_number)
   chr_number <- sprintf("%02d", as.numeric(chr_number)) # Extract the chromosome name to load the right profile.
-
-
 
   ## Profile selection
   # Build the profile name.
@@ -164,6 +168,7 @@ cnv_analysis <- function(csv_folder, region, chr, profile_folder = NULL, output_
       if (is.null(output_folder)) {
         output_file <- file.path(getwd(), paste0("CNVresults_", sample, chr_number, ".csv"))  # Using working directory by default.
       } else {
+        if (!dir.exists(output_folder)) dir.create(output_folder, recursive = TRUE)
         output_file <- file.path(output_folder, paste0("CNVresults_", sample, chr_number, ".csv"))  # Using output path.
       }
 
@@ -222,7 +227,7 @@ cnv_analysis <- function(csv_folder, region, chr, profile_folder = NULL, output_
         method = "pearson"
       )
 
-      # AFFICHER LES OUTLIER SUR CE PLOT AUSSI
+
       p2 <- ggplot(CNV_results, aes(x = .data[[colnames(CNV_results)[2]]])) +
         geom_point(aes(y = selected_region[[moy_reg]]), color = "darkgreen", size = 2) +
         geom_abline(slope = 1, intercept = 0, linetype = "dashed", color = "red", size = 1) +
@@ -233,6 +238,9 @@ cnv_analysis <- function(csv_folder, region, chr, profile_folder = NULL, output_
         ) +
         theme_minimal() +
         theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+      print(CNV_results[[2]])
+      print(selected_region[[moy_reg]])
 
       # Saving the plots
       ggsave(
@@ -249,11 +257,12 @@ cnv_analysis <- function(csv_folder, region, chr, profile_folder = NULL, output_
         height = 6,
         dpi = 300
       )
+      # Saving the output file
+      write.csv(CNV_results, output_file, row.names = FALSE)
+      cat("Filed saved as :", output_file, "\n")
     }
   }
-  # Saving the output file
-  write.csv(CNV_results, output_file, row.names = FALSE)
-  cat("Filed saved as :", output_file, "\n")
+
 
   # Clean the environment
   rm(

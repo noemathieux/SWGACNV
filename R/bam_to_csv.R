@@ -9,25 +9,28 @@
 #' @return A csv file for each BAM, usable by the cnv_analysis function.
 #'
 #' @import dplyr
-#' @importFrom Rsamtools BamFile ScanBamParam indexBam pileup
-#' @importFrom GenomicFeatures makeTxDbFromGFF genes
+#' @importFrom Rsamtools BamFile ScanBamParam indexBam pileup PileupParam
+#' @importFrom GenomicFeatures genes
 #' @importFrom GenomicRanges seqnames
 #' @importFrom IRanges IRanges IRangesList
+#' @importFrom txdbmaker makeTxDbFromGFF
 #'
 #' @export
 
 bam_to_csv <- function(bam_folder, gff_path, output_folder = NULL) {
-  #gff_file_path <- system.file("extdata", "Pfalciparum_annotation.gff", package = "SWGACNV")# Loading the reference genome
+  if (!dir.exists(bam_folder)) stop("bam_folder not found.")
   bam_files <- list.files(bam_folder, pattern = "\\.bam$", full.names = TRUE) # Loading BAM files
 
-
+  if (!file.exists(gff_path)) stop("GFF file not found.")
   # Output path
   if (is.null(output_folder)) {
     output_folder <- file.path(getwd())  # Using working directory by default
+  }else{
+    if (!dir.exists(output_folder)) dir.create(output_folder, recursive = TRUE)
   }
 
 
-  txdb <- makeTxDbFromGFF(gff_path, format = "gff")
+  txdb <- txdbmaker::makeTxDbFromGFF(gff_path, format = "gff")
   genes_ranges <- genes(txdb)
 
   iranges_list <- split(genes_ranges, seqnames(genes_ranges))
@@ -107,7 +110,6 @@ bam_to_csv <- function(bam_folder, gff_path, output_folder = NULL) {
     pileup_paramsazer,
     bam_file,
     bai_file,
-    bam,
     pileup_data,
     output_coverage
   )
