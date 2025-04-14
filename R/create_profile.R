@@ -92,24 +92,57 @@ create_profile <- function(profile_csv_folder, chromosomes = 1:14, gene_position
     auc_profile <- auc_profile %>%
       mutate(across(2:ncol(.), ~ . * Correction_Factors[cur_column()])) # Standardization is needed because of the variable depth
 
-    # Calculating the mean.
-    auc_profile <- auc_profile %>%
-      rowwise() %>%  # Apply the mean row by row
-      mutate(
-        Mean_Profile = mean(c_across(-1), na.rm = TRUE),  # Mean of every columns except the first one for every row (e.g. mean(AUC_ACT1, AUC_ACT2, AUC_ACT3, ..., AUC_B52)).
-      ) %>%
-      ungroup()  #Get out of rowwise.
-    auc_profile <- auc_profile %>% select(gene, Mean_Profile) # Mean_Profile contains the mean of every sample's corrected AUC for each gene.
+######NOUVO MODO
 
+    gene_names <- auc_profile$gene
+    n_samples <- ncol(auc_profile) - 1  # -1 car la première colonne contient les noms de gènes
+    ratio_list <- list()
+
+    # Boucle sur chaque colonne de sample (à partir de la 2e)
+    for (i in 2:ncol(auc_profile)) {
+      vector_sample <- auc_profile[[i]]
+
+      # Calcul des ratios (y / x pour chaque paire de gènes)
+      ratios_sample <- outer(vector_sample, vector_sample, FUN = function(x, y) y / x)
+
+      # Ajout des noms de lignes et colonnes
+      rownames(ratios_sample) <- gene_names
+      colnames(ratios_sample) <- gene_names
+
+      # Stocker dans la liste
+      ratio_list[[i - 1]] <- ratios_sample
+    }
+
+    # Convertir en array : [gènes, gènes, n_samples]
+    array_ratios <- simplify2array(ratio_list)
+    # Calcul de la variance pour chaque paire de gènes à travers les samples
+    ratio_var <- apply(array_ratios, c(1, 2), var, na.rm = TRUE)
+    rownames(ratio_var) <- gene_names
+    colnames(ratio_var) <- gene_names
+
+
+    # Calcul de la variance moyenne par ligne (gène)
+    mean_var_per_gene_row <- rowMeans(ratio_var, na.rm = TRUE)
+
+    # Top 10 gènes avec la plus faible variance moyenne des ratios
+    top10_genes_row <- names(sort(mean_var_per_gene_row))[1:10]
+
+    # Filtrage de la matrice de ratios pour ne garder que les gènes d’intérêt
+    var_filtered <- ratio_var[top10_genes_row, , drop = FALSE]
+
+    # Exemple : récupérer les ratios d’un échantillon (par ex. le premier)
+    ratio_filtered <- ratio_list[[1]][top10_genes_row, , drop = FALSE]
+
+##### ENDO
 
     # Saving the output file
     if (is.null(output_folder)) {
-      output_file <- file.path(getwd(), paste0("profile", sprintf("%02d", i), ".csv"))  # Saving in the wd by default
+      output_file <- file.path(getwd(), paste0("profile_chr", sprintf("%02d", i), ".csv"))  # Saving in the wd by default
     } else {
       if (!dir.exists(output_folder)) dir.create(output_folder, recursive = TRUE)
-      output_file <- file.path(output_folder, paste0("profile", sprintf("%02d", i), ".csv"))
+      output_file <- file.path(output_folder, paste0("profile_chr", sprintf("%02d", i), ".csv"))
     }
-    write.csv(auc_profile, output_file, row.names = FALSE)
+    write.csv(ratio_filtered, output_file, row.names = FALSE)
     cat("Filed saved as :", output_file, "\n")
   }
 
