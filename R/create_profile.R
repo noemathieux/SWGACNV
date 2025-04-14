@@ -83,24 +83,23 @@ create_profile <- function(profile_csv_folder, chromosomes = 1:14, gene_position
         auc_profile[[auc_new_col]][y] <- auc_value / gene_length
       }
     }
-
-    ################## calcule du cnv_analysis profile ##################
+    ################## Profile calculation ##################
 
     # Correcting sample bias.
-    GlobalMeans <- colMeans(auc_profile[, 2:ncol(auc_profile)])
-    Correction_Factors <- mean(GlobalMeans) / GlobalMeans
+    GlobalMeans <- colMeans(auc_profile[, 2:ncol(auc_profile)]) # Mean of each column(sample)
+    Correction_Factors <- mean(GlobalMeans) / GlobalMeans # Stadardization
     # Applying the correction to each column.
     auc_profile <- auc_profile %>%
-      mutate(across(2:ncol(.), ~ . * Correction_Factors[cur_column()]))
+      mutate(across(2:ncol(.), ~ . * Correction_Factors[cur_column()])) # Standardization is needed because of the variable depth
 
     # Calculating the mean.
     auc_profile <- auc_profile %>%
       rowwise() %>%  # Apply the mean row by row
       mutate(
-        Mean_Profile = mean(c_across(-1), na.rm = TRUE),  # Mean of every columns except the first one for every row.
+        Mean_Profile = mean(c_across(-1), na.rm = TRUE),  # Mean of every columns except the first one for every row (e.g. mean(AUC_ACT1, AUC_ACT2, AUC_ACT3, ..., AUC_B52)).
       ) %>%
       ungroup()  #Get out of rowwise.
-    auc_profile <- auc_profile %>% select(gene, Mean_Profile)
+    auc_profile <- auc_profile %>% select(gene, Mean_Profile) # Mean_Profile contains the mean of every sample's corrected AUC for each gene.
 
 
     # Saving the output file

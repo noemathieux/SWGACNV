@@ -66,11 +66,6 @@ cnv_analysis <- function(csv_folder, region, chr, profile_folder = NULL, output_
   selected_region <- data.frame(profiles$gene, profiles[, region, drop = FALSE])
   colnames(selected_region)[1] <- "gene" # Rename the column "profiles$gene" in "gene"
 
-
-
-
-
-
   # Load the CSV containing the start and end of each genes.
   genes_file_path <- system.file("extdata", "genes_positions.csv", package = "SWGACNV")
   df_genes <- read.csv(genes_file_path)
@@ -83,6 +78,8 @@ cnv_analysis <- function(csv_folder, region, chr, profile_folder = NULL, output_
   # Load a list of each sample CSV path.
   coverage_files <- list.files(csv_folder, pattern = "\\.csv$", full.names = TRUE)
   auc_results <- data.frame(gene = df_genes$gene)
+
+
 
   # Calculate the AUC for each gene of each sample.
   for (cov_file in coverage_files) {
@@ -112,10 +109,8 @@ cnv_analysis <- function(csv_folder, region, chr, profile_folder = NULL, output_
 
   # Extract the "gene" column
   CNV_results <- auc_results %>% select(gene)
-
   # List the regions names
   regions <- names(Mean_Profil_Global)
-
   # Stock the results
   results_list <- list()
 
@@ -138,9 +133,10 @@ cnv_analysis <- function(csv_folder, region, chr, profile_folder = NULL, output_
         return(data.frame(Corrige, Ratio, Z_Ratio))
       })
 
+
+
     # Add the sample's name in the column
     colnames(transformed_results) <- paste0(rep(colnames(auc_results)[-1], each = 3),
-                                            #PB ????
                                             "_",
                                             moy_reg,
                                             "_",
@@ -220,11 +216,14 @@ cnv_analysis <- function(csv_folder, region, chr, profile_folder = NULL, output_
         scale_x_discrete(breaks = CNV_results$gene[seq(1, nrow(CNV_results), by = 25)]) +
         guides(color = "none")
 
+      cat(all(CNV_results$gene == selected_region$gene))
+
       # Plot showing if the sample and the profiles are correlated
       correlation_value <- cor(
         CNV_results[[2]],
         selected_region[[moy_reg]],
-        method = "pearson"
+        method = "pearson",
+        use = "complete.obs"
       )
 
 
