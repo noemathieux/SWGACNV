@@ -17,7 +17,6 @@ Imports:
     ggrepel,
     Rsamtools,
     GenomicRanges,
-    GenomicFeatures,
     IRanges,
 	rtracklayer,
 	S4Vectors

@@ -10,7 +10,7 @@
 #' @return A dataframe representing the SWGA profile of the chosen samples.
 #'
 #' @import dplyr
-#' @importFrom utils install.packages read.csv write.csv
+#' @importFrom utils install.packgages read.csv write.csv
 #' @importFrom purrr map_dfc
 #' @importFrom pracma trapz
 #' @importFrom tools file_path_sans_ext

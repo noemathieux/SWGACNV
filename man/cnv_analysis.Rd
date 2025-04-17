@@ -6,8 +6,8 @@
 \usage{
 cnv_analysis(
   csv_folder,
-  region,
   chr,
+  mean_profile,
   profile_folder = NULL,
   output_folder = NULL
 )
@@ -15,9 +15,9 @@ cnv_analysis(
 \arguments{
 \item{csv_folder}{Path to the folder containing sample CSV files with columns: \code{seqnames}, \code{pos}, and \code{count}.}
 
-\item{region}{Name(s) of the reference region(s) to compare against. Either a string (e.g., \code{"BENIN"}) or a vector of strings (e.g., \code{c("BENIN", "TOGO")}).}
-
 \item{chr}{ID of the chromosome to analyze (e.g., \code{"Pf3D7_01_v3"}, or \code{"Pf3D7_02_v3"}..., or \code{"Pf3D7_14_v3"}).}
+
+\item{mean_profile}{Vector of integer containing the mean AUC for each chromosome. Returned by create_profile() and used for standardization.}
 
 \item{profile_folder}{(optional) Path to the folder which contains a profile. This is useful if you want analyze your own sample against your own profile.}
 

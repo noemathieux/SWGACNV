@@ -3,7 +3,6 @@
 #' @description Performs CNV detection by comparing new SWGA samples to a reference profile created using `create_profile()`.
 #'
 #' @param csv_folder Path to the folder containing sample CSV files with columns: `seqnames`, `pos`, and `count`.
-#' @param region Name(s) of the reference region(s) to compare against. Either a string (e.g., `"BENIN"`) or a vector of strings (e.g., `c("BENIN", "TOGO")`).
 #' @param chr ID of the chromosome to analyze (e.g., `"Pf3D7_01_v3"`, or `"Pf3D7_02_v3"`..., or `"Pf3D7_14_v3"`).
 #' @param mean_profile Vector of integer containing the mean AUC for each chromosome. Returned by create_profile() and used for standardization.
 #' @param profile_folder (optional) Path to the folder which contains a profile. This is useful if you want analyze your own sample against your own profile.
@@ -12,13 +11,13 @@
 #' @return A dataframe and a plot containing the score for each gene of each sample.
 #'
 #' @import dplyr
-#' @importFrom ggplot2 ggplot aes geom_point geom_hline scale_color_manual labs theme_minimal theme guides element_text ggsave scale_x_discrete geom_abline
+#' @importFrom ggplot2 ggplot aes geom_point geom_hline scale_color_manual labs theme_minimal theme guides element_text ggsave scale_x_discrete geom_abline scale_color_identity element_rect
 #' @importFrom ggrepel geom_text_repel
 #' @importFrom utils read.csv write.csv
 #' @importFrom purrr map_dfc
 #' @importFrom pracma trapz
 #' @importFrom tools file_path_sans_ext
-#' @importFrom stats cor
+#' @importFrom stats cor var
 #'
 #' @export
 
@@ -35,7 +34,7 @@ cnv_analysis <- function(csv_folder, chr, mean_profile, profile_folder = NULL, o
   chr_number <- sub("_V3", "", chr_number)
   chr_number <- sprintf("%02d", as.numeric(chr_number)) # Extract the chromosome name to load the right profile.
 
-  ## Profile selection
+  # Profile selection
   # Build the profile name.
   profile_filename <- paste0("profile_chr", chr_number, ".csv")
 
@@ -54,12 +53,12 @@ cnv_analysis <- function(csv_folder, chr, mean_profile, profile_folder = NULL, o
     profile_path <- file.path(profile_folder, profile_filename)
   }
 
-  # Load the profile and add the rowname
+  # Load the profile and add the row name.
   profile <- read.csv(profile_path, check.names = FALSE)
   colnames(profile)[1] <- "gene"
   rownames(profile) <- profile$gene
   profile <- profile[, -1, drop = FALSE]
-  top10_genes_row <- rownames(profile)  # Extract the gene name for later filtering
+  top10_genes_row <- rownames(profile)  # Extract the gene name for later filtering.
 
 
 
@@ -81,7 +80,7 @@ cnv_analysis <- function(csv_folder, chr, mean_profile, profile_folder = NULL, o
 
 
 
-  # Calculate the AUC for each gene of each sample.
+  # Calculate the AUC for each gene of each sample. Loop for each file.
   for (cov_file in coverage_files) {
     auc_new_col <- sub("\\.sorted\\.bam_coverage$",
                        "",
@@ -122,9 +121,8 @@ cnv_analysis <- function(csv_folder, chr, mean_profile, profile_folder = NULL, o
       rownames(ratios_sample) <- gene_names
       colnames(ratios_sample) <- gene_names
       ratio_filtered_sample <- ratios_sample[top10_genes_row, , drop = FALSE]
-      # SELEC LES DIX GENES
 
-      # IL FAUT QUE LES LIGNES ET LES COLONNES SOIT BIEN ALIGNE NOMS CORRESPONDANDS
+      # Aligne the columns and row in both of the matrix.
       ratio_filtered_sample <- ratio_filtered_sample[rownames(profile), colnames(profile)]
 
       ratio_filtered_sample <- as.matrix(ratio_filtered_sample)
@@ -143,13 +141,13 @@ cnv_analysis <- function(csv_folder, chr, mean_profile, profile_folder = NULL, o
       }
       write.csv(matrix_diff, output_file, row.names = TRUE)
 
-
+      #Keep only the best value to eliminate error
       mean_values <- apply(matrix_diff, 2, function(vec) {
         vec_sorted <- vec[order(abs(vec - 1))]  # Sort values by their distance to 1.
         mean(vec_sorted[1:8], na.rm = TRUE)    # Mean of the 8 best.
       })
 
-      # Créer un dataframe pour ggplot
+      # DF for ggplot
       df_plot <- data.frame(
         gene = names(mean_values),
         mean_ratio = mean_values
@@ -159,9 +157,9 @@ cnv_analysis <- function(csv_folder, chr, mean_profile, profile_folder = NULL, o
       df_plot$color <- ifelse(df_plot$mean_ratio > 1.4 | df_plot$mean_ratio < 0.75, "red", "blue")
       df_plot$label <- ifelse(df_plot$mean_ratio > 1.4 | df_plot$mean_ratio < 0.75, df_plot$gene, NA)
       # display only 1 in 10 gene in x
-      df_plot$gene <- factor(df_plot$gene, levels = df_plot$gene)  # Garder l'ordre
+      df_plot$gene <- factor(df_plot$gene, levels = df_plot$gene)  # Keep the same order so label do not get mixed up with the wrong value
       x_labels <- levels(df_plot$gene)
-      x_labels[!(seq_along(x_labels) %% 10 == 1)] <- ""  # Montrer seulement 1 label sur 10
+      x_labels[!(seq_along(x_labels) %% 10 == 1)] <- ""  # Display only 1 out of 10 labels
 
       # Plot x=gene names y=ratio btw profile and sample
       p <- ggplot(df_plot, aes(x = gene, y = mean_ratio, color = color)) +
@@ -192,24 +190,15 @@ cnv_analysis <- function(csv_folder, chr, mean_profile, profile_folder = NULL, o
           plot.background = element_rect(fill = "white", color = NA)
         )
 
-      cat("Nombre total de points :", nrow(df_plot), "\n")
-      cat("Nombre de labels affichés :", sum(!is.na(df_plot$label)), "\n")
-
       # Path to saving the plots
       if (is.null(output_folder)) {
         plot_path <- file.path(getwd(), paste0("MeanRatioPlot_", sample, "_chr", chr_number, ".png"))  # Using working directory by default.
-        #plot_path2 <- file.path(getwd(), paste0(sample, " vs ", moy_reg, chr_number, "_", ".jpg"))
       } else {
         plot_path <- file.path(output_folder, paste0("MeanRatioPlot_", sample, "_chr", chr_number, ".png"))  # Using output path.
-        #plot_path2 <- file.path(output_folder, paste0(sample, " vs ", moy_reg, chr_number, "_", ".jpg"))
-
       }
       if (file.exists(plot_path)) {
         file.remove(plot_path)  # Delete the file if already existing
       }
-      # if (file.exists(plot_path2)) {
-      #   file.remove(plot_path2)  # Delete the file if already existing
-      # }
 
       # Saving the plot, supress geom_text_repel label messages
       suppressMessages(suppressWarnings(ggsave(plot_path, plot = p, width = 10, height = 6, bg = "white")))
