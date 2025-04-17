@@ -71,7 +71,7 @@ create_profile <- function(profile_csv_folder, chromosomes = 1:14, gene_position
       cat ("Treating :", cov_file, "\n")
       cov_file_name <- file_path_sans_ext(basename(cov_file)) # Je suis pas sur de cette ligne a supp si ça bug
       df_coverage_temp <- df_coverage_list[[cov_file_name]] # Load the csv from the pre-made list.
-      df_coverage_temp <- subset(df_coverage_temp, toupper(seqnames) == toupper(seqname_value))#Trop long
+      df_coverage_temp <- subset(df_coverage_temp, toupper(seqnames) == toupper(seqname_value))
 
       for (y in 1:nrow(df_genes_chr)) {
         print(y)
@@ -87,10 +87,14 @@ create_profile <- function(profile_csv_folder, chromosomes = 1:14, gene_position
 
     # Correcting sample bias.
     GlobalMeans <- colMeans(auc_profile[, 2:ncol(auc_profile)]) # Mean of each column(sample)
-    Correction_Factors <- mean(GlobalMeans) / GlobalMeans # Stadardization
+    Correction_Factors <- mean(GlobalMeans) / GlobalMeans # Standardization
     # Applying the correction to each column.
     auc_profile <- auc_profile %>%
       mutate(across(2:ncol(.), ~ . * Correction_Factors[cur_column()])) # Standardization is needed because of the variable depth
+    # Stock the AUC means for each chr for later standardisation in cnv_analysis()
+    if (!exists("mean_auc_all_chr")) mean_auc_all_chr <- list()
+    mean_auc_all_chr[[paste0("chr", sprintf("%02d", i))]] <- mean(GlobalMeans)
+
 
 ######NOUVO MODO
 
@@ -99,8 +103,8 @@ create_profile <- function(profile_csv_folder, chromosomes = 1:14, gene_position
     ratio_list <- list()
 
     # Boucle sur chaque colonne de sample (à partir de la 2e)
-    for (i in 2:ncol(auc_profile)) {
-      vector_sample <- auc_profile[[i]]
+    for (l in 2:ncol(auc_profile)) {
+      vector_sample <- auc_profile[[l]]
 
       # Calcul des ratios (y / x pour chaque paire de gènes)
       ratios_sample <- outer(vector_sample, vector_sample, FUN = function(x, y) y / x)
@@ -110,7 +114,7 @@ create_profile <- function(profile_csv_folder, chromosomes = 1:14, gene_position
       colnames(ratios_sample) <- gene_names
 
       # Stocker dans la liste
-      ratio_list[[i - 1]] <- ratios_sample
+      ratio_list[[l - 1]] <- ratios_sample
     }
 
     # Convertir en array : [gènes, gènes, n_samples]
@@ -131,7 +135,13 @@ create_profile <- function(profile_csv_folder, chromosomes = 1:14, gene_position
     var_filtered <- ratio_var[top10_genes_row, , drop = FALSE]
 
     # Exemple : récupérer les ratios d’un échantillon (par ex. le premier)
-    ratio_filtered <- ratio_list[[1]][top10_genes_row, , drop = FALSE]
+    #ratio_filtered <- ratio_list[[1]][top10_genes_row, , drop = FALSE]
+    # Calcul de la moyenne des ratios pour chaque paire de gènes (moyenne sur les échantillons)
+    ratio_mean <- apply(array_ratios, c(1, 2), mean, na.rm = TRUE)
+    # Garder uniquement les lignes d’intérêt (top10 gènes stables)
+    ratio_filtered <- ratio_mean[top10_genes_row, , drop = FALSE]
+
+
 
 ##### ENDO
 
@@ -142,9 +152,13 @@ create_profile <- function(profile_csv_folder, chromosomes = 1:14, gene_position
       if (!dir.exists(output_folder)) dir.create(output_folder, recursive = TRUE)
       output_file <- file.path(output_folder, paste0("profile_chr", sprintf("%02d", i), ".csv"))
     }
-    write.csv(ratio_filtered, output_file, row.names = FALSE)
+
+    write.csv(ratio_filtered, output_file, row.names = TRUE)
     cat("Filed saved as :", output_file, "\n")
   }
+
+  #return(invisible(mean_auc_all_chr))
+  return(mean_auc_all_chr)
 
   # Clean the environment
   rm(
