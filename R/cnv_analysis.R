@@ -141,15 +141,13 @@ cnv_analysis <- function(csv_folder, chr, mean_profile, profile_folder = NULL, o
         if (!dir.exists(output_folder)) dir.create(output_folder, recursive = TRUE)
         output_file <- file.path(output_folder, paste0("CNVresults_", sample, "_chr", chr_number, ".csv"))  # Using output path.
       }
-
       write.csv(matrix_diff, output_file, row.names = TRUE)
 
 
-
-
-
-      # Calculer la moyenne de chaque colonne du matrix_diff
-      mean_values <- colMeans(matrix_diff, na.rm = TRUE)
+      mean_values <- apply(matrix_diff, 2, function(vec) {
+        vec_sorted <- vec[order(abs(vec - 1))]  # Sort values by their distance to 1.
+        mean(vec_sorted[1:8], na.rm = TRUE)    # Mean of the 8 best.
+      })
 
       # Créer un dataframe pour ggplot
       df_plot <- data.frame(
@@ -158,19 +156,30 @@ cnv_analysis <- function(csv_folder, chr, mean_profile, profile_folder = NULL, o
       )
 
       # Color swap and display name for gene with 50% more or less variation
-      df_plot$color <- ifelse(df_plot$mean_ratio > 1.5 | df_plot$mean_ratio < 0.5, "red", "blue")
-      df_plot$label <- ifelse(df_plot$mean_ratio > 1.5 | df_plot$mean_ratio < 0.5, df_plot$gene, NA)
+      df_plot$color <- ifelse(df_plot$mean_ratio > 1.4 | df_plot$mean_ratio < 0.75, "red", "blue")
+      df_plot$label <- ifelse(df_plot$mean_ratio > 1.4 | df_plot$mean_ratio < 0.75, df_plot$gene, NA)
       # display only 1 in 10 gene in x
       df_plot$gene <- factor(df_plot$gene, levels = df_plot$gene)  # Garder l'ordre
       x_labels <- levels(df_plot$gene)
       x_labels[!(seq_along(x_labels) %% 10 == 1)] <- ""  # Montrer seulement 1 label sur 10
 
-      # Créer le plot
+      # Plot x=gene names y=ratio btw profile and sample
       p <- ggplot(df_plot, aes(x = gene, y = mean_ratio, color = color)) +
         geom_point() +
-        geom_text_repel(aes(label = label), max.overlaps = Inf, size = 3) +  # Ajouter les étiquettes extrêmes
+        geom_text_repel(
+          aes(label = label),
+          size = 3,
+          box.padding = 0.3,
+          point.padding = 0.2,
+          max.overlaps = Inf,
+          segment.color = "red",
+          segment.size = 0.3
+        ) +
+        geom_hline(yintercept = 1, color = "blue", linetype = "dashed", linewidth = 0.6) +
+        geom_hline(yintercept = 1.5, color = "darkred", linetype = "dotted", linewidth = 0.6) +
+        geom_hline(yintercept = 0.5, color = "darkred", linetype = "dotted", linewidth = 0.6) +
         scale_color_identity() +
-        scale_x_discrete(labels = x_labels) +  # Affiche un label sur 10
+        scale_x_discrete(labels = x_labels) +
         labs(
           title = paste("Mean CNV Ratio per Gene -", sample),
           x = "Gene",
@@ -183,6 +192,8 @@ cnv_analysis <- function(csv_folder, chr, mean_profile, profile_folder = NULL, o
           plot.background = element_rect(fill = "white", color = NA)
         )
 
+      cat("Nombre total de points :", nrow(df_plot), "\n")
+      cat("Nombre de labels affichés :", sum(!is.na(df_plot$label)), "\n")
 
       # Path to saving the plots
       if (is.null(output_folder)) {
@@ -200,7 +211,8 @@ cnv_analysis <- function(csv_folder, chr, mean_profile, profile_folder = NULL, o
       #   file.remove(plot_path2)  # Delete the file if already existing
       # }
 
-      ggsave(plot_path, plot = p, width = 10, height = 6, bg = "white")
+      # Saving the plot, supress geom_text_repel label messages
+      suppressMessages(suppressWarnings(ggsave(plot_path, plot = p, width = 10, height = 6, bg = "white")))
 
 
   # # Clean the environment
