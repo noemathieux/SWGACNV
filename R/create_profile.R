@@ -4,14 +4,14 @@
 #'
 #' @param profile_csv_folder Path to a folder containing the CSV files. Each file should have 3 columns : `seqnames`, `pos`, and `count`.
 #' @param chromosomes (optional) Vector of chromosome numbers to analyze (e.g., 1:14 or c(1, 2, 3)). Defaults to 1:14.
-#' @param gene_position (optional)Path to the file containing each gene to analyze with their start and end. It should have 3 column : `gene`, `start`, `end`.
+#' @param gene_position (optional)Path to the file containing each gene to analyze with their start and end. It should have 3 column : `gene`, `start`, `end`. Default to the one provided with the package.
 #' @param output_folder (optional) Path to the folder where the profile files will be saved. Defaults to the working directory if not provided.
 #'
 #' @return A dataframe representing the SWGA profile of the chosen samples.
 #'
-#' @import dplyr
-#' @importFrom utils install.packgages read.csv write.csv
-#' @importFrom purrr map_dfc
+#' @importFrom dplyr mutate across
+#' @importFrom magrittr %>%
+#' @importFrom utils read.csv write.csv
 #' @importFrom pracma trapz
 #' @importFrom tools file_path_sans_ext
 #'
@@ -19,22 +19,22 @@
 create_profile <- function(profile_csv_folder, chromosomes = 1:14, gene_position = NULL, output_folder = NULL){
 
   # Checking if the path are correct
-  if (!dir.exists(profile_csv_folder)) stop("profile_csv_folder not found.")
+  if (!dir.exists(profile_csv_folder)) stop("'profile_csv_folder' not found.")
+  if (!is.null(output_folder) && !dir.exists(output_folder)) stop("'output_folder' not found.")
   # Chromosomes check
   if (!is.numeric(chromosomes) || any(chromosomes < 1 | chromosomes > 14 | chromosomes != as.integer(chromosomes))) {
     stop("'chromosomes' must be an integer vector between 1 and 14 (e.g., 1:14 or c(1, 3, 5)).")
   }
 
 
-
-  # load file with genes start/end
+  # Load the CSV containing the start and end of each genes.
   if (is.null(gene_position)) {
     # Load the csv file containing 3 columns : gene name, the positions at which they start and end.
     genes_file_path <- system.file("extdata", "genes_positions.csv", package = "SWGACNV")
     df_genes <- read.csv(genes_file_path)
   }else{
-    if (!file.exists(gene_position)) stop("gene_position file not found.")
-    df_genes <- read.csv(gene_position) ####### ATESTER #####################################################
+    if (!file.exists(gene_position)) stop("'gene_position' file not found.")
+    df_genes <- read.csv(gene_position)
   }
 
   # Load a list of the csv files path. Those files contain 3 columns : the chromosome, the position in the genome and the number of read.
@@ -89,61 +89,53 @@ create_profile <- function(profile_csv_folder, chromosomes = 1:14, gene_position
     GlobalMeans <- colMeans(auc_profile[, 2:ncol(auc_profile)]) # Mean of each column(sample)
     Correction_Factors <- mean(GlobalMeans) / GlobalMeans # Standardization
     # Applying the correction to each column.
-    auc_profile <- auc_profile %>%
-      mutate(across(2:ncol(.), ~ . * Correction_Factors[cur_column()])) # Standardization is needed because of the variable depth
+    for (col in names(auc_profile)[2:ncol(auc_profile)]) {
+      auc_profile[[col]] <- auc_profile[[col]] * Correction_Factors[[col]] # Standardization is needed because of the variable depth
+    }
     # Stock the AUC means for each chr for later standardisation in cnv_analysis()
     if (!exists("mean_auc_all_chr")) mean_auc_all_chr <- list()
     mean_auc_all_chr[[paste0("chr", sprintf("%02d", i))]] <- mean(GlobalMeans)
 
 
-######NOUVO MODO
+    ### Comparing to profile.
 
     gene_names <- auc_profile$gene
-    n_samples <- ncol(auc_profile) - 1  # -1 car la première colonne contient les noms de gènes
+    n_samples <- ncol(auc_profile) - 1 # Separate the genes names from the samples values.
     ratio_list <- list()
 
-    # Boucle sur chaque colonne de sample (à partir de la 2e)
+    # Loop on each sample column.
     for (l in 2:ncol(auc_profile)) {
       vector_sample <- auc_profile[[l]]
 
-      # Calcul des ratios (y / x pour chaque paire de gènes)
+      # Ratios (y / x for each pair of genes in the sample).
       ratios_sample <- outer(vector_sample, vector_sample, FUN = function(x, y) y / x)
 
-      # Ajout des noms de lignes et colonnes
+      # Add the names.
       rownames(ratios_sample) <- gene_names
       colnames(ratios_sample) <- gene_names
 
-      # Stocker dans la liste
+      # List of matrix.
       ratio_list[[l - 1]] <- ratios_sample
     }
 
-    # Convertir en array : [gènes, gènes, n_samples]
+    # Convert in 3D array : [genes, genes, n_samples]
     array_ratios <- simplify2array(ratio_list)
-    # Calcul de la variance pour chaque paire de gènes à travers les samples
+
+    ## The goal is to find the 10 more stable genes to use as a reference for cnv analysis.
+    # Calculation of the variance for each pair of gene between all samples.
     ratio_var <- apply(array_ratios, c(1, 2), var, na.rm = TRUE)
     rownames(ratio_var) <- gene_names
     colnames(ratio_var) <- gene_names
-
-
-    # Calcul de la variance moyenne par ligne (gène)
+    # Mean of the var for each row (using the rowe instead of col because we will divide by these gene later so we need stability when dividing).
     mean_var_per_gene_row <- rowMeans(ratio_var, na.rm = TRUE)
-
-    # Top 10 gènes avec la plus faible variance moyenne des ratios
+    # 10 genes with the lowest var.
     top10_genes_row <- names(sort(mean_var_per_gene_row))[1:10]
 
-    # Filtrage de la matrice de ratios pour ne garder que les gènes d’intérêt
-    var_filtered <- ratio_var[top10_genes_row, , drop = FALSE]
-
-    # Exemple : récupérer les ratios d’un échantillon (par ex. le premier)
-    #ratio_filtered <- ratio_list[[1]][top10_genes_row, , drop = FALSE]
-    # Calcul de la moyenne des ratios pour chaque paire de gènes (moyenne sur les échantillons)
+    # Mean of the AUC ratios, will be used for comparison against new samples.
     ratio_mean <- apply(array_ratios, c(1, 2), mean, na.rm = TRUE)
-    # Garder uniquement les lignes d’intérêt (top10 gènes stables)
+    # Keep only the 10 most stable genes for comparison.
     ratio_filtered <- ratio_mean[top10_genes_row, , drop = FALSE]
 
-
-
-##### ENDO
 
     # Saving the output file
     if (is.null(output_folder)) {

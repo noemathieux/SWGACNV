@@ -9,6 +9,7 @@ cnv_analysis(
   chr,
   mean_profile,
   profile_folder = NULL,
+  gene_positions = NULL,
   output_folder = NULL
 )
 }
@@ -22,6 +23,8 @@ cnv_analysis(
 \item{profile_folder}{(optional) Path to the folder which contains a profile. This is useful if you want analyze your own sample against your own profile.}
 
 \item{output_folder}{(optional)  Path to the folder where the profile files will be saved. Defaults to the working directory if not provided.}
+
+\item{gene_position}{(optional)Path to the file containing each gene to analyze with their start and end. It should have 3 column : \code{gene}, \code{start}, \code{end}.}
 }
 \value{
 A dataframe and a plot containing the score for each gene of each sample.

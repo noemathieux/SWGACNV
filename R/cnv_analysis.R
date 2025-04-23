@@ -5,13 +5,15 @@
 #' @param csv_folder Path to the folder containing sample CSV files with columns: `seqnames`, `pos`, and `count`.
 #' @param chr ID of the chromosome to analyze (e.g., `"Pf3D7_01_v3"`, or `"Pf3D7_02_v3"`..., or `"Pf3D7_14_v3"`).
 #' @param mean_profile Vector of integer containing the mean AUC for each chromosome. Returned by create_profile() and used for standardization.
+#' @param gene_position (optional)Path to the file containing each gene to analyze with their start and end. It should have 3 column : `gene`, `start`, `end`. Default to the one provided with the package.
 #' @param profile_folder (optional) Path to the folder which contains a profile. This is useful if you want analyze your own sample against your own profile.
 #' @param output_folder (optional)  Path to the folder where the profile files will be saved. Defaults to the working directory if not provided.
 #'
 #' @return A dataframe and a plot containing the score for each gene of each sample.
 #'
-#' @import dplyr
-#' @importFrom ggplot2 ggplot aes geom_point geom_hline scale_color_manual labs theme_minimal theme guides element_text ggsave scale_x_discrete geom_abline scale_color_identity element_rect
+#' @importFrom dplyr mutate across
+#' @importFrom magrittr %>%
+#' @importFrom ggplot2 ggplot aes geom_point geom_hline labs theme_minimal theme element_text ggsave scale_x_discrete scale_color_identity element_rect
 #' @importFrom ggrepel geom_text_repel
 #' @importFrom utils read.csv write.csv
 #' @importFrom purrr map_dfc
@@ -21,7 +23,7 @@
 #'
 #' @export
 
-cnv_analysis <- function(csv_folder, chr, mean_profile, profile_folder = NULL, output_folder = NULL) {
+cnv_analysis <- function(csv_folder, chr, mean_profile, profile_folder = NULL, gene_position = NULL, output_folder = NULL) {
   ## test commit
   # Checking if files and folder exists
   if (!dir.exists(csv_folder)) stop("csv_folder not found.")
@@ -65,10 +67,15 @@ cnv_analysis <- function(csv_folder, chr, mean_profile, profile_folder = NULL, o
   # Load the mean AUC for standardization
   mean_profile_chr <- mean_profile[[paste0("chr", chr_number)]]
 
-
   # Load the CSV containing the start and end of each genes.
-  genes_file_path <- system.file("extdata", "genes_positions.csv", package = "SWGACNV")
-  df_genes <- read.csv(genes_file_path)
+    if (is.null(gene_position)) {
+    # Load the csv file containing 3 columns : gene name, the positions at which they start and end.
+    genes_file_path <- system.file("extdata", "genes_positions.csv", package = "SWGACNV")
+    df_genes <- read.csv(genes_file_path)
+  }else{
+    if (!file.exists(gene_position)) stop("'gene_position' file not found.")
+    df_genes <- read.csv(gene_position)
+  }
 
   # Selecting the wanted chromosome.
   chr_prefix <- sub("_V3$", "", chr)
@@ -107,8 +114,9 @@ cnv_analysis <- function(csv_folder, chr, mean_profile, profile_folder = NULL, o
     mean_sample <- colMeans(auc_results[, 2:ncol(auc_results)]) # Mean of each column(sample)
     Correction_Factors <- mean_profile_chr / mean_sample # Standardization
     # Applying the correction to each column.
-    auc_results <- auc_results %>%
-      mutate(across(2:ncol(.), ~ . * Correction_Factors[cur_column()])) # Standardization is needed because of the variable depth
+    for (col in names(auc_results)[2:ncol(auc_results)]) {
+      auc_results[[col]] <- auc_results[[col]] * Correction_Factors[[col]]
+    }
 
     gene_names <- auc_results$gene
 

@@ -7,11 +7,12 @@
 #'
 #' @return A csv file for each BAM, containing only positions with at least `min_coverage` reads.
 #'
-#' @import dplyr
+#' @importFrom dplyr filter
+#' @importFrom magrittr %>%
 #' @importFrom Rsamtools BamFile ScanBamParam indexBam pileup PileupParam
 #'
 #' @export
-bam_to_csv_nogff <- function(bam_folder, output_folder = NULL, min_coverage = 5) {
+bam_to_csv <- function(bam_folder, output_folder = NULL, min_coverage = 5) {
   if (!dir.exists(bam_folder)) stop("bam_folder not found.")
   bam_files <- list.files(bam_folder, pattern = "\\.bam$", full.names = TRUE)
 

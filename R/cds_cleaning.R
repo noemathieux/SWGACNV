@@ -8,10 +8,11 @@
 #'
 #' @return A csv file without introns, usable by the cnv_analysis function.
 #'
-#' @import dplyr
-#' @import GenomicRanges
-#' @import rtracklayer
+#' @importFrom dplyr filter
+#' @importFrom GenomicRanges GRanges findOverlaps
+#' @importFrom rtracklayer import
 #' @importFrom S4Vectors queryHits
+#' @importFrom IRanges IRanges
 #'
 #' @export
 
