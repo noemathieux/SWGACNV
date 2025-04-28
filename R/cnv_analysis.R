@@ -111,7 +111,8 @@ cnv_analysis <- function(csv_folder, chr, mean_profile, profile_folder = NULL, g
   ################## New sample score ##################
 
     # Correcting sample bias.
-    mean_sample <- colMeans(auc_results[, 2:ncol(auc_results)]) # Mean of each column(sample)
+    mean_sample <- colMeans(as.matrix(auc_results[, 2:ncol(auc_results)]), na.rm = TRUE) # Mean of each column(sample)
+    #mean_sample <- colMeans(auc_results[, 2:ncol(auc_results)]) # Mean of each column(sample)
     Correction_Factors <- mean_profile_chr / mean_sample # Standardization
     # Applying the correction to each column.
     for (col in names(auc_results)[2:ncol(auc_results)]) {
@@ -162,8 +163,8 @@ cnv_analysis <- function(csv_folder, chr, mean_profile, profile_folder = NULL, g
       )
 
       # Color swap and display name for gene with 50% more or less variation
-      df_plot$color <- ifelse(df_plot$mean_ratio > 1.4 | df_plot$mean_ratio < 0.75, "red", "blue")
-      df_plot$label <- ifelse(df_plot$mean_ratio > 1.4 | df_plot$mean_ratio < 0.75, df_plot$gene, NA)
+      df_plot$color <- ifelse(df_plot$mean_ratio > 1 | df_plot$mean_ratio < 0.75, "red", "blue")
+      df_plot$label <- ifelse(df_plot$mean_ratio > 1 | df_plot$mean_ratio < 0.75, df_plot$gene, NA)
       # display only 1 in 10 gene in x
       df_plot$gene <- factor(df_plot$gene, levels = df_plot$gene)  # Keep the same order so label do not get mixed up with the wrong value
       x_labels <- levels(df_plot$gene)
