@@ -163,8 +163,8 @@ cnv_analysis <- function(csv_folder, chr, mean_profile, profile_folder = NULL, g
       )
 
       # Color swap and display name for gene with 50% more or less variation
-      df_plot$color <- ifelse(df_plot$mean_ratio > 1 | df_plot$mean_ratio < 0.75, "red", "blue")
-      df_plot$label <- ifelse(df_plot$mean_ratio > 1 | df_plot$mean_ratio < 0.75, df_plot$gene, NA)
+      df_plot$color <- ifelse(df_plot$mean_ratio > 1.5 | df_plot$mean_ratio < 0.5, "red", "blue")
+      df_plot$label <- ifelse(df_plot$mean_ratio > 1.5 | df_plot$mean_ratio < 0.5, df_plot$gene, NA)
       # display only 1 in 10 gene in x
       df_plot$gene <- factor(df_plot$gene, levels = df_plot$gene)  # Keep the same order so label do not get mixed up with the wrong value
       x_labels <- levels(df_plot$gene)
