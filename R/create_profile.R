@@ -178,3 +178,4 @@ create_profile <- function(profile_csv_folder, chromosomes = 1:14, gene_position
   gc()
 
 }
+#testyanis bjr
