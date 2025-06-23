@@ -150,10 +150,10 @@ create_profile <- function(profile_csv_folder, chromosomes = 1:14, gene_position
 
 
   ### CORRELATION ###
-  auc_values <- auc_profile[, -1]  # Retirer la colonne "gene"
+  auc_values <- auc_profile[, -1]  # Withdraw the column "gene"
   sample_names <- colnames(auc_values)
 
-  # Double boucle pour chaque paire d'échantillons
+  # Double loop for each pair of samples
   for (s1 in 1:(ncol(auc_values) - 1)) {
     for (s2 in (s1 + 1):ncol(auc_values)) {
       x <- auc_values[[s1]]
@@ -174,7 +174,6 @@ create_profile <- function(profile_csv_folder, chromosomes = 1:14, gene_position
     }
   }
   ###################
-
 
   #return(invisible(mean_auc_all_chr))
   return(mean_auc_all_chr)
