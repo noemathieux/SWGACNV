@@ -84,7 +84,6 @@ create_profile <- function(profile_csv_folder, chromosomes = 1:14, gene_position
       }
     }
     ################## Profile calculation ##################
-
     # Correcting sample bias.
     GlobalMeans <- colMeans(auc_profile[, 2:ncol(auc_profile)]) # Mean of each column(sample)
     Correction_Factors <- mean(GlobalMeans) / GlobalMeans # Standardization
@@ -92,10 +91,10 @@ create_profile <- function(profile_csv_folder, chromosomes = 1:14, gene_position
     for (col in names(auc_profile)[2:ncol(auc_profile)]) {
       auc_profile[[col]] <- auc_profile[[col]] * Correction_Factors[[col]] # Standardization is needed because of the variable depth
     }
+
     # Stock the AUC means for each chr for later standardisation in cnv_analysis()
     if (!exists("mean_auc_all_chr")) mean_auc_all_chr <- list()
     mean_auc_all_chr[[paste0("chr", sprintf("%02d", i))]] <- mean(GlobalMeans)
-
 
     ### Comparing to profile.
 
@@ -148,6 +147,34 @@ create_profile <- function(profile_csv_folder, chromosomes = 1:14, gene_position
     write.csv(ratio_filtered, output_file, row.names = TRUE)
     cat("Filed saved as :", output_file, "\n")
   }
+
+
+  ### CORRELATION ###
+  auc_values <- auc_profile[, -1]  # Retirer la colonne "gene"
+  sample_names <- colnames(auc_values)
+
+  # Double boucle pour chaque paire d'échantillons
+  for (s1 in 1:(ncol(auc_values) - 1)) {
+    for (s2 in (s1 + 1):ncol(auc_values)) {
+      x <- auc_values[[s1]]
+      y <- auc_values[[s2]]
+
+      cor_val <- cor(x, y, method = "pearson", use = "complete.obs")
+      plot_file <- file.path(output_folder, paste0("scatter_", sample_names[s1], "_vs_", sample_names[s2], ".png"))
+
+      png(filename = plot_file, width = 800, height = 800)
+      plot(x, y,
+           main = paste("Correlation:", round(cor_val, 3)),
+           xlab = sample_names[s1], ylab = sample_names[s2],
+           pch = 19, col = "blue")
+      abline(lm(y ~ x), col = "red", lwd = 2)
+      dev.off()
+
+      cat("Plot saved :", plot_file, "\n")
+    }
+  }
+  ###################
+
 
   #return(invisible(mean_auc_all_chr))
   return(mean_auc_all_chr)
