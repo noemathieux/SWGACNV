@@ -151,5 +151,5 @@ This package depends on:
 
 ## Author
 
-Created by Noé MATHIEUX and Romain COPPÉE.<br>
-GitHub: [Rocamadourr²](https://github.com/Rocamadourr)
+Created by Noé MATHIEUX and Romain COPPÉE.  
+GitHub: [Rocamadourr](https://github.com/Rocamadourr)

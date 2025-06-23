@@ -3,7 +3,7 @@
 #' @description This function allow the user to create his own profile to use in the cnv_analysis function.
 #'
 #' @param profile_csv_folder Path to a folder containing the CSV files. Each file should have 3 columns : `seqnames`, `pos`, and `count`.
-#' @param chromosomes (optional) Vector of chromosome numbers to analyze (e.g., 1:14 or c(1, 2, 3)). Defaults to 1:14.
+#' @param chromosomes (optional) Vector of chromosome numbers to analyze (e.g., 1:14 or c(1, 4, 6)). Defaults to 1:14.
 #' @param gene_position (optional)Path to the file containing each gene to analyze with their start and end. It should have 3 column : `gene`, `start`, `end`. Default to the one provided with the package.
 #' @param output_folder (optional) Path to the folder where the profile files will be saved. Defaults to the working directory if not provided.
 #'
