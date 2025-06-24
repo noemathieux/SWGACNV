@@ -14,6 +14,7 @@
 #' @importFrom utils read.csv write.csv
 #' @importFrom pracma trapz
 #' @importFrom tools file_path_sans_ext
+#' @importFrom ggplot2 ggplot aes geom_point geom_smooth ggtitle xlab ylab theme_bw theme ggsave
 #' @importFrom grDevices png dev.off
 #' @importFrom graphics abline
 #' @importFrom stats lm
@@ -179,7 +180,7 @@ create_profile <- function(profile_csv_folder, chromosomes = 1:14, gene_position
         geom_point(color = "darkgreen", size = 2) +
         geom_smooth(method = "lm", se = FALSE, color = "red", linetype = "dashed") +
         ggtitle(paste0(sample_names[s1], " vs ", sample_names[s2],
-                       " Pearson correlation : ", round(cor_val, 3))) +
+                       "\nPearson correlation : ", round(cor_val, 3))) +
         xlab(sample_names[s1]) +
         ylab(sample_names[s2]) +
         theme_bw() +
