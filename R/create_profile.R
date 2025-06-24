@@ -14,6 +14,9 @@
 #' @importFrom utils read.csv write.csv
 #' @importFrom pracma trapz
 #' @importFrom tools file_path_sans_ext
+#' @importFrom grDevices png dev.off
+#' @importFrom graphics abline
+#' @importFrom stats lm
 #'
 #' @export
 create_profile <- function(profile_csv_folder, chromosomes = 1:14, gene_position = NULL, output_folder = NULL){
@@ -39,6 +42,14 @@ create_profile <- function(profile_csv_folder, chromosomes = 1:14, gene_position
 
   # Load a list of the csv files path. Those files contain 3 columns : the chromosome, the position in the genome and the number of read.
   coverage_files <- list.files(profile_csv_folder, pattern = "\\.csv$", full.names = TRUE)# select all files ending by .csv
+  # If only one file is found, duplicate it virtually to allow computation
+  if (length(coverage_files) == 1) {
+    original_file <- coverage_files[1]
+    duplicate_file <- tempfile(fileext = ".csv")
+    file.copy(original_file, duplicate_file)
+    coverage_files <- c(original_file, duplicate_file)
+    message("Only one reference file detected, at least one more would be needed for a better analysis.")
+  }
 
 
 
@@ -158,19 +169,24 @@ create_profile <- function(profile_csv_folder, chromosomes = 1:14, gene_position
     for (s2 in (s1 + 1):ncol(auc_values)) {
       x <- auc_values[[s1]]
       y <- auc_values[[s2]]
-
       cor_val <- cor(x, y, method = "pearson", use = "complete.obs")
-      plot_file <- file.path(output_folder, paste0("scatter_", sample_names[s1], "_vs_", sample_names[s2], ".png"))
 
-      png(filename = plot_file, width = 800, height = 800)
-      plot(x, y,
-           main = paste("Correlation:", round(cor_val, 3)),
-           xlab = sample_names[s1], ylab = sample_names[s2],
-           pch = 19, col = "blue")
-      abline(lm(y ~ x), col = "red", lwd = 2)
-      dev.off()
+      df_plot <- data.frame(x = x, y = y)
 
-      cat("Plot saved :", plot_file, "\n")
+      plot_file <- file.path(output_folder, paste0("correlation_", sample_names[s1], "_vs_", sample_names[s2], "_chr", sprintf("%02d", i), ".png"))
+
+      p <- ggplot(df_plot, aes(x = x, y = y)) +
+        geom_point(color = "darkgreen", size = 2) +
+        geom_smooth(method = "lm", se = FALSE, color = "red", linetype = "dashed") +
+        ggtitle(paste0(sample_names[s1], " vs ", sample_names[s2],
+                       " Pearson correlation : ", round(cor_val, 3))) +
+        xlab(sample_names[s1]) +
+        ylab(sample_names[s2]) +
+        theme_bw() +
+        theme(plot.title = element_text(hjust = 0.5))
+
+      ggsave(plot_file, plot = p, width = 10, height = 6)
+      cat("Plot enregistré :", plot_file, "\n")
     }
   }
   ###################

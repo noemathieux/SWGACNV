@@ -18,6 +18,7 @@ Imports:
     Rsamtools,
     GenomicRanges,
     IRanges,
+	magrittr,
 	rtracklayer,
 	S4Vectors
 Roxygen: list(markdown = TRUE)

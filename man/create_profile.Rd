@@ -14,9 +14,9 @@ create_profile(
 \arguments{
 \item{profile_csv_folder}{Path to a folder containing the CSV files. Each file should have 3 columns : \code{seqnames}, \code{pos}, and \code{count}.}
 
-\item{chromosomes}{(optional) Vector of chromosome numbers to analyze (e.g., 1:14 or c(1, 2, 3)). Defaults to 1:14.}
+\item{chromosomes}{(optional) Vector of chromosome numbers to analyze (e.g., 1:14 or c(1, 4, 6)). Defaults to 1:14.}
 
-\item{gene_position}{(optional)Path to the file containing each gene to analyze with their start and end. It should have 3 column : \code{gene}, \code{start}, \code{end}.}
+\item{gene_position}{(optional)Path to the file containing each gene to analyze with their start and end. It should have 3 column : \code{gene}, \code{start}, \code{end}. Default to the one provided with the package.}
 
 \item{output_folder}{(optional) Path to the folder where the profile files will be saved. Defaults to the working directory if not provided.}
 }

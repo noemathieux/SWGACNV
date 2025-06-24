@@ -6,6 +6,9 @@ generated through SWGA sequencing, specifically in malaria-related studies.
 
 ## Installation
 
+To install this package and its dependencies on Windows, you may need to install [Rtools](https://cran.r-project.org/bin/windows/Rtools/).
+Make sure Rtools is properly installed and available in your system PATH.
+
 You can install the development version of SWGACNV like so:
 
 ``` r
@@ -13,6 +16,7 @@ install.packages("devtools")
 devtools::install_github("Rocamadourr/SWGACNV")
 
 ```
+
 
 ## Function Overview
 
