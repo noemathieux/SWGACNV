@@ -138,6 +138,33 @@ cnv_analysis <- function(csv_folder, chr, mean_profile, profile_folder = NULL, g
       mode(profile) <- "numeric"
       matrix_diff <- ratio_filtered_sample / profile
 
+      ### CORRELATION ###
+      mean_profile <- as.data.frame(t(colMeans(profile)))
+      mean_sample <- as.data.frame(t(colMeans(ratio_filtered_sample)))
+
+      x <- as.numeric(mean_profile[1, ])
+      y <- as.numeric(mean_sample[1, ])
+
+      cor_val <- cor(x, y, method = "pearson", use = "complete.obs")
+
+      df_plot <- data.frame(x = x, y = y)
+
+      plot_file <- file.path(output_folder, paste0("Correlation_", sample, "_chr", chr_number, ".png"))
+
+      p <- ggplot(df_plot, aes(x = x, y = y)) +
+        geom_point(color = "darkgreen", size = 2) +
+        geom_smooth(method = "lm", se = FALSE, color = "red", linetype = "dashed") +
+        ggtitle(paste0("MEAN ", sample,
+                       " — Pearson r = ", round(cor_val, 3))) +
+        xlab(paste("Mean profile")) +
+        ylab(paste("Mean of", sample)) +
+        theme_bw() +
+        theme(plot.title = element_text(hjust = 0.5))
+
+      ggsave(plot_file, plot = p, width = 10, height = 6)
+      cat("Plot enregistré :", plot_file, "\n")
+
+
       # Output path.
       if (is.null(output_folder)) {
         output_file <- file.path(getwd(), paste0("CNVresults_", sample, chr_number, ".csv"))  # Using working directory by default.
@@ -209,41 +236,39 @@ cnv_analysis <- function(csv_folder, chr, mean_profile, profile_folder = NULL, g
       # Saving the plot, supress geom_text_repel label messages
       suppressMessages(suppressWarnings(ggsave(plot_path, plot = p, width = 10, height = 6, bg = "white")))
 
-
-  # # Clean the environment
-  # rm(
-  #   chr,
-  #   chr_number,
-  #   profile_filename,
-  #   profile_path,
-  #   profile,
-  #   selected_region,
-  #   genes_file_path,
-  #   df_genes,
-  #   chr_prefix,
-  #   coverage_files,
-  #   output_file,
-  #   cov_file,
-  #   auc_new_col,
-  #   df_coverage_temp,
-  #   i,
-  #   idx,
-  #   auc_value,
-  #   gene_length,
-  #   Mean_Profil_Global,
-  #   CNV_results,
-  #   regions,
-  #   results_list,
-  #   moy_reg,
-  #   transformed_results,
-  #   sample,
-  #   ratio_col,
-  #   zscore_col,
-  #   p,
-  #   plot_path
-  # )
-  #
-  # gc()
-
-}
+    }
+    # # Clean the environment
+    # rm(
+    #   chr,
+    #   chr_number,
+    #   profile_filename,
+    #   profile_path,
+    #   profile,
+    #   selected_region,
+    #   genes_file_path,
+    #   df_genes,
+    #   chr_prefix,
+    #   coverage_files,
+    #   output_file,
+    #   cov_file,
+    #   auc_new_col,
+    #   df_coverage_temp,
+    #   i,
+    #   idx,
+    #   auc_value,
+    #   gene_length,
+    #   Mean_Profil_Global,
+    #   CNV_results,
+    #   regions,
+    #   results_list,
+    #   moy_reg,
+    #   transformed_results,
+    #   sample,
+    #   ratio_col,
+    #   zscore_col,
+    #   p,
+    #   plot_path
+    # )
+    #
+    # gc()
 }
