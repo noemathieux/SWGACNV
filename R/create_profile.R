@@ -158,39 +158,38 @@ create_profile <- function(profile_csv_folder, chromosomes = 1:14, gene_position
 
     write.csv(ratio_filtered, output_file, row.names = TRUE)
     cat("Filed saved as :", output_file, "\n")
-  }
 
+    ### CORRELATION ###
+    auc_values <- auc_profile[, -1]  # Withdraw the column "gene"
+    sample_names <- colnames(auc_values)
 
-  ### CORRELATION ###
-  auc_values <- auc_profile[, -1]  # Withdraw the column "gene"
-  sample_names <- colnames(auc_values)
+    # Double loop for each pair of samples
+    for (s1 in 1:(ncol(auc_values) - 1)) {
+      for (s2 in (s1 + 1):ncol(auc_values)) {
+        x <- auc_values[[s1]]
+        y <- auc_values[[s2]]
+        cor_val <- cor(x, y, method = "pearson", use = "complete.obs")
 
-  # Double loop for each pair of samples
-  for (s1 in 1:(ncol(auc_values) - 1)) {
-    for (s2 in (s1 + 1):ncol(auc_values)) {
-      x <- auc_values[[s1]]
-      y <- auc_values[[s2]]
-      cor_val <- cor(x, y, method = "pearson", use = "complete.obs")
+        df_plot <- data.frame(x = x, y = y)
 
-      df_plot <- data.frame(x = x, y = y)
+        plot_file <- file.path(output_folder, paste0("correlation_", sample_names[s1], "_vs_", sample_names[s2], "_chr", sprintf("%02d", i), ".png"))
 
-      plot_file <- file.path(output_folder, paste0("correlation_", sample_names[s1], "_vs_", sample_names[s2], "_chr", sprintf("%02d", i), ".png"))
+        p <- ggplot(df_plot, aes(x = x, y = y)) +
+          geom_point(color = "darkgreen", size = 2) +
+          geom_smooth(method = "lm", se = FALSE, color = "red", linetype = "dashed") +
+          ggtitle(paste0(sample_names[s1], " vs ", sample_names[s2],
+                         "\nPearson correlation : ", round(cor_val, 3))) +
+          xlab(sample_names[s1]) +
+          ylab(sample_names[s2]) +
+          theme_bw() +
+          theme(plot.title = element_text(hjust = 0.5))
 
-      p <- ggplot(df_plot, aes(x = x, y = y)) +
-        geom_point(color = "darkgreen", size = 2) +
-        geom_smooth(method = "lm", se = FALSE, color = "red", linetype = "dashed") +
-        ggtitle(paste0(sample_names[s1], " vs ", sample_names[s2],
-                       "\nPearson correlation : ", round(cor_val, 3))) +
-        xlab(sample_names[s1]) +
-        ylab(sample_names[s2]) +
-        theme_bw() +
-        theme(plot.title = element_text(hjust = 0.5))
-
-      ggsave(plot_file, plot = p, width = 10, height = 6)
-      cat("Plot enregistré :", plot_file, "\n")
+        ggsave(plot_file, plot = p, width = 10, height = 6)
+        cat("Plot enregistré :", plot_file, "\n")
+      }
     }
+    ###################
   }
-  ###################
 
   #return(invisible(mean_auc_all_chr))
   return(mean_auc_all_chr)

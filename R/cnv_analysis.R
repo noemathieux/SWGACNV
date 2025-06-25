@@ -24,7 +24,6 @@
 #' @export
 
 cnv_analysis <- function(csv_folder, chr, mean_profile, profile_folder = NULL, gene_position = NULL, output_folder = NULL) {
-  ## test commit
   # Checking if files and folder exists
   if (!dir.exists(csv_folder)) stop("csv_folder not found.")
   if (!is.null(profile_folder)) {
@@ -41,7 +40,7 @@ cnv_analysis <- function(csv_folder, chr, mean_profile, profile_folder = NULL, g
   profile_filename <- paste0("profile_chr", chr_number, ".csv")
 
   if (is.null(profile_folder)) {
-    profile_path <- system.file("extdata", profile_filename, package = "SWGACNV")  # Modifier le dossier si besoin
+    profile_path <- system.file("extdata", profile_filename, package = "SWGACNV")
     # Load the corresponding profile.
     if (!file.exists(profile_path)) {
       stop(paste(
@@ -84,8 +83,6 @@ cnv_analysis <- function(csv_folder, chr, mean_profile, profile_folder = NULL, g
   # Load a list of each sample CSV path.
   coverage_files <- list.files(csv_folder, pattern = "\\.csv$", full.names = TRUE)
   auc_results <- data.frame(gene = df_genes$gene)
-
-
 
   # Calculate the AUC for each gene of each sample. Loop for each file.
   for (cov_file in coverage_files) {
@@ -131,7 +128,7 @@ cnv_analysis <- function(csv_folder, chr, mean_profile, profile_folder = NULL, g
       colnames(ratios_sample) <- gene_names
       ratio_filtered_sample <- ratios_sample[top10_genes_row, , drop = FALSE]
 
-      # Aligne the columns and row in both of the matrix.
+      # Aline the columns and row in both of the matrix.
       ratio_filtered_sample <- ratio_filtered_sample[rownames(profile), colnames(profile)]
 
       ratio_filtered_sample <- as.matrix(ratio_filtered_sample)
