@@ -43,16 +43,15 @@ create_profile <- function(profile_csv_folder, chromosomes = 1:14, gene_position
 
   # Load a list of the csv files path. Those files contain 3 columns : the chromosome, the position in the genome and the number of read.
   coverage_files <- list.files(profile_csv_folder, pattern = "\\.csv$", full.names = TRUE)# select all files ending by .csv
+  nbr_sample <- length(coverage_files)
   # If only one file is found, duplicate it virtually to allow computation
-  if (length(coverage_files) == 1) {
+  if (nbr_sample == 1) {
     original_file <- coverage_files[1]
     duplicate_file <- tempfile(fileext = ".csv")
     file.copy(original_file, duplicate_file)
     coverage_files <- c(original_file, duplicate_file)
     message("Only one reference file detected, at least one more would be needed for a better analysis.")
   }
-
-
 
   # Loop to pre-load each files once.
   df_coverage_list <- list()
@@ -61,6 +60,40 @@ create_profile <- function(profile_csv_folder, chromosomes = 1:14, gene_position
     cov_file_name <- file_path_sans_ext(basename(cov_file))  # Unique name.
     df_coverage_list[[cov_file_name]] <- read.csv(cov_file)
   }
+
+  # List of 10 stable genes defined manually for each chromosome (less accurate).
+  manual_top10_genes <- list(
+    chr01 = c("PF3D7_0108400", "PF3D7_0115400", "PF3D7_0115800", "PF3D7_0114000", "PF3D7_0104500",
+              "PF3D7_0112800", "PF3D7_0117400", "PF3D7_0112600", "PF3D7_0104300", "PF3D7_0116200"),
+    chr02 = c("PF3D7_0216200", "PF3D7_0212600", "PF3D7_0214900", "PF3D7_0215900", "PF3D7_0214900",
+              "PF3D7_0210500", "PF3D7_0204700", "PF3D7_0206800", "PF3D7_0217300", "PF3D7_0207900"),
+    chr03 = c("PF3D7_0312800", "PF3D7_0312100", "PF3D7_0304800", "PF3D7_0311600", "PF3D7_0308300",
+              "PF3D7_0302400", "PF3D7_0311800", "PF3D7_0312900", "PF3D7_0307300", "PF3D7_0308700"),
+    chr04 = c("PF3D7_0417200", "PF3D7_0415600", "PF3D7_0416100", "PF3D7_0417700", "PF3D7_0405000",
+              "PF3D7_0404300", "PF3D7_0413600", "PF3D7_0417500", "PF3D7_0416200", "PF3D7_0411800"),
+    chr05 = c("PF3D7_0517100", "PF3D7_0513900", "PF3D7_0514400", "PF3D7_0506900", "PF3D7_0507600",
+              "PF3D7_0507500", "PF3D7_0517400", "PF3D7_0508300", "PF3D7_0507900", "PF3D7_0513800"),
+    chr06 = c("PF3D7_0620000", "PF3D7_0617900", "PF3D7_0607400", "PF3D7_0606000", "PF3D7_0609500",
+              "PF3D7_0618000", "PF3D7_0609300", "PF3D7_0609900", "PF3D7_0611400", "PF3D7_0618200"),
+    chr07 = c("PF3D7_0710900", "PF3D7_0711000", "PF3D7_0715900", "PF3D7_0711200", "PF3D7_0716400",
+              "PF3D7_0709700", "PF3D7_0709300", "PF3D7_0708500", "PF3D7_0711800", "PF3D7_0709200"),
+    chr08 = c("PF3D7_0813300", "PF3D7_0809600", "PF3D7_0810500", "PF3D7_0809100", "PF3D7_0812200",
+              "PF3D7_0806800", "PF3D7_0811300", "PF3D7_0813600", "PF3D7_0807600", "PF3D7_0806300"),
+    chr09 = c("PF3D7_0917700", "PF3D7_0913700", "PF3D7_0914200", "PF3D7_0915700", "PF3D7_0917100",
+              "PF3D7_0913400", "PF3D7_0916500", "PF3D7_0912200", "PF3D7_0914800", "PF3D7_0912500"),
+    chr10 = c("PF3D7_1014200", "PF3D7_1010600", "PF3D7_1005900", "PF3D7_1011500", "PF3D7_1014700",
+              "PF3D7_1007000", "PF3D7_1010900", "PF3D7_1013700", "PF3D7_1014800", "PF3D7_1008300"),
+    chr11 = c("PF3D7_1115500", "PF3D7_1112700", "PF3D7_1107300", "PF3D7_1108000", "PF3D7_1112200",
+              "PF3D7_1110800", "PF3D7_1110400", "PF3D7_1109300", "PF3D7_1109500", "PF3D7_1110000"),
+    chr12 = c("PF3D7_1216600", "PF3D7_1212700", "PF3D7_1213400", "PF3D7_1216200", "PF3D7_1215700",
+              "PF3D7_1209200", "PF3D7_1214100", "PF3D7_1212800", "PF3D7_1214700", "PF3D7_1213900"),
+    chr13 = c("PF3D7_1318000", "PF3D7_1317200", "PF3D7_1317500", "PF3D7_1312400", "PF3D7_1311500",
+              "PF3D7_1312600", "PF3D7_1305200", "PF3D7_1309900", "PF3D7_1307800", "PF3D7_1309400"),
+    chr14 = c("PF3D7_1419300", "PF3D7_1417000", "PF3D7_1434500", "PF3D7_1433200", "PF3D7_1430400",
+              "PF3D7_1426900", "PF3D7_1423100", "PF3D7_1422100", "PF3D7_1427000", "PF3D7_1439100")
+  )
+
+
 
   # Loop for each chromosome
   for (i in chromosomes){
@@ -86,7 +119,7 @@ create_profile <- function(profile_csv_folder, chromosomes = 1:14, gene_position
       df_coverage_temp <- subset(df_coverage_temp, toupper(seqnames) == toupper(seqname_value))
 
       for (y in 1:nrow(df_genes_chr)) {
-        print(y)
+        #print(y)
         idx <- which(df_coverage_temp$pos >= df_genes_chr$start[y]
                      & df_coverage_temp$pos <= df_genes_chr$end[y]
         )
@@ -139,9 +172,15 @@ create_profile <- function(profile_csv_folder, chromosomes = 1:14, gene_position
     colnames(ratio_var) <- gene_names
     # Mean of the var for each row (using the rowe instead of col because we will divide by these gene later so we need stability when dividing).
     mean_var_per_gene_row <- rowMeans(ratio_var, na.rm = TRUE)
-    # 10 genes with the lowest var.
-    top10_genes_row <- names(sort(mean_var_per_gene_row))[1:10]
 
+    chr_key <- paste0("chr", sprintf("%02d", i))
+    if (nbr_sample == 1) {
+      cat("1seul \n")
+      top10_genes_row <- manual_top10_genes[[chr_key]]
+    } else {
+      cat("PLUSIEURS \n")
+      top10_genes_row <- names(sort(mean_var_per_gene_row))[1:10]
+    }
     # Mean of the AUC ratios, will be used for comparison against new samples.
     ratio_mean <- apply(array_ratios, c(1, 2), mean, na.rm = TRUE)
     # Keep only the 10 most stable genes for comparison.
