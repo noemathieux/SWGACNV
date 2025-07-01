@@ -109,13 +109,13 @@ cnv_analysis <- function(csv_folder, chr, mean_profile, profile_folder = NULL, g
 
     # Correcting sample bias.
     mean_sample <- colMeans(as.matrix(auc_results[, 2:ncol(auc_results)]), na.rm = TRUE) # Mean of each column(sample)
-    #mean_sample <- colMeans(auc_results[, 2:ncol(auc_results)]) # Mean of each column(sample)
     Correction_Factors <- mean_profile_chr / mean_sample # Standardization
+    Correction_Factors <- setNames(Correction_Factors, colnames(auc_results)[-1])
     # Applying the correction to each column.
-    for (col in names(auc_results)[2:ncol(auc_results)]) {
-      auc_results[[col]] <- auc_results[[col]] * Correction_Factors[[col]]
-    }
 
+    for (col in names(auc_results)[2:ncol(auc_results)]) {
+        auc_results[[col]] <- auc_results[[col]] * Correction_Factors[[col]]
+    }
     gene_names <- auc_results$gene
 
     # Loop on each sample to create a plot
@@ -138,12 +138,13 @@ cnv_analysis <- function(csv_folder, chr, mean_profile, profile_folder = NULL, g
       mode(profile) <- "numeric"
       matrix_diff <- ratio_filtered_sample / profile
 
-      ### CORRELATION ###
-      mean_profile <- as.data.frame(t(colMeans(profile)))
-      mean_sample <- as.data.frame(t(colMeans(ratio_filtered_sample)))
 
-      x <- as.numeric(mean_profile[1, ])
-      y <- as.numeric(mean_sample[1, ])
+      ### CORRELATION ###
+      mean_profiles <- as.data.frame(t(colMeans(profile)))
+      mean_samples <- as.data.frame(t(colMeans(ratio_filtered_sample)))
+
+      x <- as.numeric(mean_profiles[1, ])
+      y <- as.numeric(mean_samples[1, ])
 
       cor_val <- cor(x, y, method = "pearson", use = "complete.obs")
 
@@ -172,20 +173,15 @@ cnv_analysis <- function(csv_folder, chr, mean_profile, profile_folder = NULL, g
         if (!dir.exists(output_folder)) dir.create(output_folder, recursive = TRUE)
         output_file <- file.path(output_folder, paste0("CNVresults_", sample, "_chr", chr_number, ".csv"))  # Using output path.
       }
+
       write.csv(matrix_diff, output_file, row.names = TRUE)
 
-      #Keep only the best value to eliminate error
-      mean_values <- apply(matrix_diff, 2, function(vec) {
-        vec_sorted <- vec[order(abs(vec - 1))]  # Sort values by their distance to 1.
-        mean(vec_sorted[1:8], na.rm = TRUE)    # Mean of the 8 best.
-      })
-
-      # DF for ggplot
+      # DF to plot
+      mean_cols <- colMeans(matrix_diff[, -1], na.rm = TRUE)
       df_plot <- data.frame(
-        gene = names(mean_values),
-        mean_ratio = mean_values
+        gene = names(mean_cols),
+        mean_ratio = mean_cols
       )
-
       # Color swap and display name for gene with 50% more or less variation
       df_plot$color <- ifelse(df_plot$mean_ratio > 1.5 | df_plot$mean_ratio < 0.5, "red", "blue")
       df_plot$label <- ifelse(df_plot$mean_ratio > 1.5 | df_plot$mean_ratio < 0.5, df_plot$gene, NA)
