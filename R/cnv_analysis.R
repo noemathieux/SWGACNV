@@ -67,7 +67,7 @@ cnv_analysis <- function(csv_folder, chr, mean_profile, profile_folder = NULL, g
   mean_profile_chr <- mean_profile[[paste0("chr", chr_number)]]
 
   # Load the CSV containing the start and end of each genes.
-    if (is.null(gene_position)) {
+  if (is.null(gene_position)) {
     # Load the csv file containing 3 columns : gene name, the positions at which they start and end.
     genes_file_path <- system.file("extdata", "genes_positions.csv", package = "SWGACNV")
     df_genes <- read.csv(genes_file_path)
@@ -233,38 +233,4 @@ cnv_analysis <- function(csv_folder, chr, mean_profile, profile_folder = NULL, g
       suppressMessages(suppressWarnings(ggsave(plot_path, plot = p, width = 10, height = 6, bg = "white")))
 
     }
-    # # Clean the environment
-    # rm(
-    #   chr,
-    #   chr_number,
-    #   profile_filename,
-    #   profile_path,
-    #   profile,
-    #   selected_region,
-    #   genes_file_path,
-    #   df_genes,
-    #   chr_prefix,
-    #   coverage_files,
-    #   output_file,
-    #   cov_file,
-    #   auc_new_col,
-    #   df_coverage_temp,
-    #   i,
-    #   idx,
-    #   auc_value,
-    #   gene_length,
-    #   Mean_Profil_Global,
-    #   CNV_results,
-    #   regions,
-    #   results_list,
-    #   moy_reg,
-    #   transformed_results,
-    #   sample,
-    #   ratio_col,
-    #   zscore_col,
-    #   p,
-    #   plot_path
-    # )
-    #
-    # gc()
 }

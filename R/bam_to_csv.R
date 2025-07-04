@@ -55,7 +55,7 @@ bam_to_csv <- function(bam_folder, output_folder = NULL, min_coverage = 5) {
       pileupParam = pileup_param
     )
 
-    # Filtrage dynamique par seuil de couverture
+    # Dynamic filtering by coverage threshold
     pileup_data <- pileup_data %>%
       filter(count >= min_coverage)
 

@@ -63,28 +63,28 @@ create_profile <- function(profile_csv_folder, chromosomes = 1:14, gene_position
 
   # List of 10 stable genes defined manually for each chromosome (less accurate).
   manual_top10_genes <- list(
-    chr01 = c("PF3D7_0108400", "PF3D7_0115400", "PF3D7_0115800", "PF3D7_0114000", "PF3D7_0104500",
-              "PF3D7_0112800", "PF3D7_0117400", "PF3D7_0112600", "PF3D7_0104300", "PF3D7_0116200"),
-    chr02 = c("PF3D7_0216200", "PF3D7_0212600", "PF3D7_0214900", "PF3D7_0215900", "PF3D7_0214900",
+    chr01 = c("PF3D7_0108400", "PF3D7_0108600", "PF3D7_0109950", "PF3D7_0114000", "PF3D7_0104500",
+              "PF3D7_0112800", "PF3D7_0113900", "PF3D7_0114800", "PF3D7_0104300", "PF3D7_0103600"),
+    chr02 = c("PF3D7_0216200", "PF3D7_0212600", "PF3D7_0214900", "PF3D7_0215900", "PF3D7_0215000",
               "PF3D7_0210500", "PF3D7_0204700", "PF3D7_0206800", "PF3D7_0217300", "PF3D7_0207900"),
     chr03 = c("PF3D7_0312800", "PF3D7_0312100", "PF3D7_0304800", "PF3D7_0311600", "PF3D7_0308300",
-              "PF3D7_0302400", "PF3D7_0311800", "PF3D7_0312900", "PF3D7_0307300", "PF3D7_0308700"),
+              "PF3D7_0308600", "PF3D7_0311800", "PF3D7_0312900", "PF3D7_0307300", "PF3D7_0308700"),
     chr04 = c("PF3D7_0417200", "PF3D7_0415600", "PF3D7_0416100", "PF3D7_0417700", "PF3D7_0405000",
               "PF3D7_0404300", "PF3D7_0413600", "PF3D7_0417500", "PF3D7_0416200", "PF3D7_0411800"),
-    chr05 = c("PF3D7_0517100", "PF3D7_0513900", "PF3D7_0514400", "PF3D7_0506900", "PF3D7_0507600",
+    chr05 = c("PF3D7_0517100", "PF3D7_0513900", "PF3D7_0514100", "PF3D7_0506900", "PF3D7_0507600",
               "PF3D7_0507500", "PF3D7_0517400", "PF3D7_0508300", "PF3D7_0507900", "PF3D7_0513800"),
     chr06 = c("PF3D7_0620000", "PF3D7_0617900", "PF3D7_0607400", "PF3D7_0606000", "PF3D7_0609500",
               "PF3D7_0618000", "PF3D7_0609300", "PF3D7_0609900", "PF3D7_0611400", "PF3D7_0618200"),
     chr07 = c("PF3D7_0710900", "PF3D7_0711000", "PF3D7_0715900", "PF3D7_0711200", "PF3D7_0716400",
-              "PF3D7_0709700", "PF3D7_0709300", "PF3D7_0708500", "PF3D7_0711800", "PF3D7_0709200"),
-    chr08 = c("PF3D7_0813300", "PF3D7_0809600", "PF3D7_0810500", "PF3D7_0809100", "PF3D7_0812200",
+              "PF3D7_0709700", "PF3D7_0709300", "PF3D7_0708500", "PF3D7_0709800", "PF3D7_0709200"),
+    chr08 = c("PF3D7_0813300", "PF3D7_0809600", "PF3D7_0810500", "PF3D7_0810800", "PF3D7_0812200",
               "PF3D7_0806800", "PF3D7_0811300", "PF3D7_0813600", "PF3D7_0807600", "PF3D7_0806300"),
     chr09 = c("PF3D7_0917700", "PF3D7_0913700", "PF3D7_0914200", "PF3D7_0915700", "PF3D7_0917100",
               "PF3D7_0913400", "PF3D7_0916500", "PF3D7_0912200", "PF3D7_0914800", "PF3D7_0912500"),
     chr10 = c("PF3D7_1014200", "PF3D7_1010600", "PF3D7_1005900", "PF3D7_1011500", "PF3D7_1014700",
-              "PF3D7_1007000", "PF3D7_1010900", "PF3D7_1013700", "PF3D7_1014800", "PF3D7_1008300"),
+              "PF3D7_1007000", "PF3D7_1010900", "PF3D7_1013700", "PF3D7_1014800", "PF3D7_1015000"),
     chr11 = c("PF3D7_1115500", "PF3D7_1112700", "PF3D7_1107300", "PF3D7_1108000", "PF3D7_1112200",
-              "PF3D7_1110800", "PF3D7_1110400", "PF3D7_1109300", "PF3D7_1109500", "PF3D7_1110000"),
+              "PF3D7_1110800", "PF3D7_1110400", "PF3D7_1110700", "PF3D7_1111200", "PF3D7_1110000"),
     chr12 = c("PF3D7_1216600", "PF3D7_1212700", "PF3D7_1213400", "PF3D7_1216200", "PF3D7_1215700",
               "PF3D7_1209200", "PF3D7_1214100", "PF3D7_1212800", "PF3D7_1214700", "PF3D7_1213900"),
     chr13 = c("PF3D7_1318000", "PF3D7_1317200", "PF3D7_1317500", "PF3D7_1312400", "PF3D7_1311500",
@@ -114,7 +114,7 @@ create_profile <- function(profile_csv_folder, chromosomes = 1:14, gene_position
       auc_profile[[auc_new_col]] <- rep(NA, nrow(auc_profile))
 
       cat ("Treating :", cov_file, "\n")
-      cov_file_name <- file_path_sans_ext(basename(cov_file)) # Je suis pas sur de cette ligne a supp si ça bug
+      cov_file_name <- file_path_sans_ext(basename(cov_file))
       df_coverage_temp <- df_coverage_list[[cov_file_name]] # Load the csv from the pre-made list.
       df_coverage_temp <- subset(df_coverage_temp, toupper(seqnames) == toupper(seqname_value))
 
@@ -230,7 +230,6 @@ create_profile <- function(profile_csv_folder, chromosomes = 1:14, gene_position
     ###################
   }
 
-  #return(invisible(mean_auc_all_chr))
   return(mean_auc_all_chr)
 
   # Clean the environment
