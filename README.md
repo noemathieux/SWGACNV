@@ -103,6 +103,9 @@ These results help identify amplifications or deletions in sample genomes based 
 ## Exemple
 
 ```r
+
+install.packages("devtools")
+devtools::install_github("Rocamadourr/SWGACNV")
 library(SWGACNV)
 
 # Step 1: Convert BAM files to coverage CSV
@@ -115,18 +118,17 @@ bam_to_csv(bam_folder = bam_folder, output_folder = csv_folder)
 gff_path <- "data/Pfalciparum_annotation.gff"
 csv_cleaned <- "data/csv_files/csv_cleaned"
 cds_cleaning(csv_folder = csv_folder, gff_path = gff_path, output_folder = csv_cleaned)
-
+# Split the cleaned csv between reference files (data/ref_csv_folder) and the one you want to analyse (data/new_samples_csv_folder).
 
 # Step 3: Create a reference profile from coverage data
-profile_csv_folder <- "results/csv_files"
+profile_csv_folder <- "data/ref_csv_folder"
 output_path <- "results/profiles"
 
 mean_profile <- create_profile(profile_csv_folder, output_path)
 
 # Step 4: Detect CNVs in new samples
-csv_folder <- "data/new_samples_csv"
-region <- "BENIN"
-output_folder <- "results/cnv_plots"
+samples_folder <- "data/new_samples_csv_folder"
+output_folder <- "data/results"
 
 for (i in 4:5){
   chromosome <- paste0("PF3D7_", sprintf("%02d", i), "_V3")
@@ -155,5 +157,5 @@ This package depends on:
 
 ## Author
 
-Created by Noé MATHIEUX and Romain COPPÉE.  
+Created by Noé MATHIEUX, Yanis MEZIANI and Romain COPPÉE.  
 GitHub: [Rocamadourr](https://github.com/Rocamadourr)
