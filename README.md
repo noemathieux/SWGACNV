@@ -136,6 +136,14 @@ for (i in 4:5){
 }
 
 ```
+![HRP3 deletion](images/DEL_HRP3.png)
+![HRP3 no deletion](images/NORMAL_HRP3.png)
+![MDR1 duplication](images/DUP_MDR1.png)
+![MDR1 no duplication](images/NORMAL_MDR1.png)
+
+
+
+
 
 ## Dependencies
 
