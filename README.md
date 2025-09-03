@@ -158,4 +158,4 @@ This package depends on:
 ## Author
 
 Created by Noé MATHIEUX, Yanis MEZIANI and Romain COPPÉE.  
-GitHub: [Rocamadourr](https://github.com/Rocamadourr)
+GitHub: [Noé MATHIEUX](https://github.com/noemathieux)
